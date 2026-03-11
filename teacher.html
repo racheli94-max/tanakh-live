@@ -137,7 +137,7 @@ async function doLogin(){
     S.isAdmin=true;S.myClass="";S.selCls="all";S.screen="dashboard";S.tab="students";
     startListening();return;
   }
-  if(!cls){renderLogin("נא להזין קוד כיתה");return;}
+  if(!cls){renderLogin("סיסמה שגויה — או הזיני קוד כיתה");return;}
   try{
     const snap=await db.ref(`teachers/${cls}`).get();
     if(!snap.exists()){renderLogin(`כיתה "${cls}" לא נמצאה`);return;}
