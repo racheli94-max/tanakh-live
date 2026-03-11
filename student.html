@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>עקדת יצחק — שיעור אדפטיבי</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&family=Frank+Ruhl+Libre:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script>
+// Load Firebase dynamically to ensure correct order
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+window._firebaseReady = (async () => {
+  await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+  await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js');
+})();
+</script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Heebo',sans-serif;background:#f5ede0;direction:rtl;min-height:100vh;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:#c4956a;border-radius:3px;}
+input,textarea{font-family:'Heebo',sans-serif;direction:rtl;}
+input:focus,textarea:focus{outline:none!important;border-color:#c4956a!important;box-shadow:0 0 0 2px rgba(180,120,60,.18)!important;}
+.btn{transition:all .16s;cursor:pointer;font-family:'Heebo',sans-serif;border:none;display:inline-block;}
+.btn:hover:not(:disabled){opacity:.83;transform:translateY(-1px);}
+.btn:disabled{cursor:not-allowed;opacity:.35;}
+@keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.fade{animation:fi .3s ease;}
+@keyframes pop{0%{transform:scale(.7);opacity:0;}60%{transform:scale(1.15);}100%{transform:scale(1);opacity:1;}}
+.pop{animation:pop .38s cubic-bezier(.34,1.56,.64,1);}
+@keyframes sh{0%{opacity:.5;}50%{opacity:1;}100%{opacity:.5;}}
+.sh{animation:sh 1.6s ease infinite;}
+.wdot{border-bottom:1.5px dotted #c4956a;cursor:pointer;}
+.wdot:hover{background:rgba(196,149,106,.2);border-radius:2px;}
+.mc-opt{cursor:pointer;transition:all .14s;padding:10px 14px;border-radius:7px;font-size:13px;direction:rtl;margin-bottom:6px;}
+.mc-opt:hover{background:rgba(139,94,60,.13)!important;}
+.sroll{height:10px;background:#c4956a;border-radius:5px;opacity:.6;margin:0;}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<!-- Word tip overlay -->
+<div id="wordtip" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:998;background:#f9f3e8;border:1.5px solid #c4956a;border-radius:12px;padding:15px 19px;max-width:270px;box-shadow:0 8px 28px rgba(100,60,20,.15);direction:rtl;cursor:pointer;" onclick="closeWordTip()">
+  <div id="wordtip-word" style="font-family:'Frank Ruhl Libre',serif;font-size:19px;color:#8b5e3c;font-weight:700;margin-bottom:7px;"></div>
+  <div id="wordtip-meaning" style="font-size:13px;color:#6b4c30;line-height:1.75;"></div>
+  <div style="font-size:10px;color:#a08060;margin-top:9px;text-align:center;">לחץ לסגירה</div>
+</div>
+
+<!-- Success overlay -->
+<div id="success-overlay" style="display:none;position:fixed;inset:0;z-index:999;display:none;align-items:center;justify-content:center;background:rgba(245,237,224,.85);backdrop-filter:blur(4px);">
+  <div class="pop" style="text-align:center;">
+    <div style="font-size:56px;margin-bottom:8px;">✨</div>
+    <div style="font-family:'Frank Ruhl Libre',serif;font-size:24px;color:#8b5e3c;font-weight:700;">כן! יפה מאוד</div>
+  </div>
+</div>
+
+<script>
+// ─── Wait for Firebase then init ──────────────────────────────────────────
+window._firebaseReady.then(() => {
+// ─── Firebase Config ───────────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey: "AIzaSyAx1FqiaiUei4zS08A-k9mvf-Sndyz5IcQ",
+  authDomain: "tanakh-live.firebaseapp.com",
+  databaseURL: "https://tanakh-live-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "tanakh-live",
+  storageBucket: "tanakh-live.firebasestorage.app",
+  messagingSenderId: "800812315850",
+  appId: "1:800812315850:web:e99443749fc1c0f046b033"
+});
+const db = firebase.database();
+
+// ─── Data ────────────────────────────────────────────────────────────────
+const PASUK = [
+  {n:1, t:"וַיְהִי אַחַר הַדְּבָרִים הָאֵלֶּה וְהָאֱלֹהִים נִסָּה אֶת אַבְרָהָם וַיֹּאמֶר אֵלָיו אַבְרָהָם וַיֹּאמֶר הִנֵּנִי׃"},
+  {n:2, t:"וַיֹּאמֶר קַח נָא אֶת בִּנְךָ אֶת יְחִידְךָ אֲשֶׁר אָהַבְתָּ אֶת יִצְחָק וְלֶךְ לְךָ אֶל אֶרֶץ הַמֹּרִיָּה וְהַעֲלֵהוּ שָׁם לְעֹלָה עַל אַחַד הֶהָרִים אֲשֶׁר אֹמַר אֵלֶיךָ׃"},
+  {n:3, t:"וַיַּשְׁכֵּם אַבְרָהָם בַּבֹּקֶר וַיַּחֲבֹשׁ אֶת חֲמֹרוֹ וַיִּקַּח אֶת שְׁנֵי נְעָרָיו אִתּוֹ וְאֵת יִצְחָק בְּנוֹ וַיְבַקַּע עֲצֵי עֹלָה וַיָּקָם וַיֵּלֶךְ אֶל הַמָּקוֹם אֲשֶׁר אָמַר לוֹ הָאֱלֹהִים׃"},
+  {n:4, t:"בַּיּוֹם הַשְּׁלִישִׁי וַיִּשָּׂא אַבְרָהָם אֶת עֵינָיו וַיַּרְא אֶת הַמָּקוֹם מֵרָחֹק׃"},
+  {n:5, t:"וַיֹּאמֶר אַבְרָהָם אֶל נְעָרָיו שְׁבוּ לָכֶם פֹּה עִם הַחֲמוֹר וַאֲנִי וְהַנַּעַר נֵלְכָה עַד כֹּה וְנִשְׁתַּחֲוֶה וְנָשׁוּבָה אֲלֵיכֶם׃"},
+  {n:6, t:"וַיִּקַּח אַבְרָהָם אֶת עֲצֵי הָעֹלָה וַיָּשֶׂם עַל יִצְחָק בְּנוֹ וַיִּקַּח בְּיָדוֹ אֶת הָאֵשׁ וְאֶת הַמַּאֲכֶלֶת וַיֵּלְכוּ שְׁנֵיהֶם יַחְדָּו׃"},
+  {n:7, t:"וַיֹּאמֶר יִצְחָק אֶל אַבְרָהָם אָבִיו וַיֹּאמֶר אָבִי וַיֹּאמֶר הִנֶּנִּי בְנִי וַיֹּאמֶר הִנֵּה הָאֵשׁ וְהָעֵצִים וְאַיֵּה הַשֶּׂה לְעֹלָה׃"},
+  {n:8, t:"וַיֹּאמֶר אַבְרָהָם אֱלֹהִים יִרְאֶה לּוֹ הַשֶּׂה לְעֹלָה בְּנִי וַיֵּלְכוּ שְׁנֵיהֶם יַחְדָּו׃"},
+  {n:9, t:"וַיָּבֹאוּ אֶל הַמָּקוֹם אֲשֶׁר אָמַר לוֹ הָאֱלֹהִים וַיִּבֶן שָׁם אַבְרָהָם אֶת הַמִּזְבֵּחַ וַיַּעֲרֹךְ אֶת הָעֵצִים וַיַּעֲקֹד אֶת יִצְחָק בְּנוֹ וַיָּשֶׂם אֹתוֹ עַל הַמִּזְבֵּחַ מִמַּעַל לָעֵצִים׃"},
+  {n:10, t:"וַיִּשְׁלַח אַבְרָהָם אֶת יָדוֹ וַיִּקַּח אֶת הַמַּאֲכֶלֶת לִשְׁחֹט אֶת בְּנוֹ׃"},
+  {n:11, t:"וַיִּקְרָא אֵלָיו מַלְאַךְ יְהוָה מִן הַשָּׁמַיִם וַיֹּאמֶר אַבְרָהָם אַבְרָהָם וַיֹּאמֶר הִנֵּנִי׃"},
+  {n:12, t:"וַיֹּאמֶר אַל תִּשְׁלַח יָדְךָ אֶל הַנַּעַר וְאַל תַּעַשׂ לוֹ מְאוּמָה כִּי עַתָּה יָדַעְתִּי כִּי יְרֵא אֱלֹהִים אַתָּה וְלֹא חָשַׂכְתָּ אֶת בִּנְךָ אֶת יְחִידְךָ מִמֶּנִּי׃"},
+  {n:13, t:"וַיִּשָּׂא אַבְרָהָם אֶת עֵינָיו וַיַּרְא וְהִנֵּה אַיִל אַחַר נֶאֱחַז בַּסְּבַךְ בְּקַרְנָיו וַיֵּלֶךְ אַבְרָהָם וַיִּקַּח אֶת הָאַיִל וַיַּעֲלֵהוּ לְעֹלָה תַּחַת בְּנוֹ׃"},
+  {n:14, t:"וַיִּקְרָא אַבְרָהָם שֵׁם הַמָּקוֹם הַהוּא יְהוָה יִרְאֶה אֲשֶׁר יֵאָמֵר הַיּוֹם בְּהַר יְהוָה יֵרָאֶה׃"},
+  {n:15, t:"וַיִּקְרָא מַלְאַךְ יְהוָה אֶל אַבְרָהָם שֵׁנִית מִן הַשָּׁמָיִם׃"},
+  {n:16, t:"וַיֹּאמֶר בִּי נִשְׁבַּעְתִּי נְאֻם יְהוָה כִּי יַעַן אֲשֶׁר עָשִׂיתָ אֶת הַדָּבָר הַזֶּה וְלֹא חָשַׂכְתָּ אֶת בִּנְךָ אֶת יְחִידֶךָ׃"},
+  {n:17, t:"כִּי בָרֵךְ אֲבָרֶכְךָ וְהַרְבָּה אַרְבֶּה אֶת זַרְעֲךָ כְּכוֹכְבֵי הַשָּׁמַיִם וְכַחוֹל אֲשֶׁר עַל שְׂפַת הַיָּם וְיִרַשׁ זַרְעֲךָ אֵת שַׁעַר אֹיְבָיו׃"},
+  {n:18, t:"וְהִתְבָּרֲכוּ בְזַרְעֲךָ כֹּל גּוֹיֵי הָאָרֶץ עֵקֶב אֲשֶׁר שָׁמַעְתָּ בְּקֹלִי׃"},
+  {n:19, t:"וַיָּשָׁב אַבְרָהָם אֶל נְעָרָיו וַיָּקֻמוּ וַיֵּלְכוּ יַחְדָּו אֶל בְּאֵר שָׁבַע וַיֵּשֶׁב אַבְרָהָם בִּבְאֵר שָׁבַע׃"},
+];
+
+const GLOSSARY = {
+  "נִסָּה":"ניסה, בחן","הִנֵּנִי":"'הנה אני כאן' — נוכחות מלאה","הִנֶּנִּי":"'הנה אני כאן' — נוכחות מלאה",
+  "עֹלָה":"קרבן שנשרף כולו","הַמֹּרִיָּה":"הר המוריה — שם ייבנה בית המקדש",
+  "וַיַּשְׁכֵּם":"קם מוקדם בבוקר","וַיַּחֲבֹשׁ":"קשר האוכף על החמור",
+  "וַיְבַקַּע":"חתך עצים בגרזן","מַאֲכֶלֶת":"סכין גדולה לשחיטה",
+  "וַיַּעֲקֹד":"קשר ידיים ורגליים — מכאן שם 'עקדה'","סְבַךְ":"שיחים סבוכים",
+  "אַיִל":"זכר הכבש","יַחְדָּו":"יחד, ביחד","נְעָרָיו":"משרתיו הצעירים",
+  "יְחִידְךָ":"בנך היחיד","וַיִּשְׁתַּחֲוֶה":"כרע לאדמה מתוך כבוד","אֵלֶּה":"מציין קשר לאירועים קודמים",
+};
+
+const KNOWLEDGE = `== בראשית כ"ב ==
+[קשר לפרק הקודם] "לך לך" ×2 במקרא — שניהם לאברהם. י"ב: מתנתק מעברו. כ"ב: מתנתק מעתידו. "קח נא"=בקשה.
+[פס' א] "נסה"=ניסיון/לרומם. [פס' ב] בן←יחיד←אהוב←יצחק. "נא"=בקשה (רש"י).
+[פס' ג] 6 פעלים: זריזות/הסחת דעת/בלבול רגשי. [פס' ד] 3 ימי מחשבה.
+[פס' ה] "ונשובה"=ברבים. [פס' ו-ח] "יחדיו"×2: פיזי/רוחני. תשובה מתחמקת.
+[פס' ז-ח] "ויאמר"×5 — שיחה איטית. "אב/בן" מיותרים תחבירית=קשר נפשי.
+[פס' ט] ריבוי פעלים. [פס' י-יא] "אברהם אברהם"=בהילות.
+[פס' יב] "עתה ידעתי": בחירה חופשית / שד"ל: שונא קרבן אדם / רמב"ם: משל.
+[פס' יג] איל=שופר ראש השנה. [פס' טו-יח] ברכות אישיות+כלל-אנושיות.
+[פס' יט] יצחק לא מוזכר=ניתוק. אסא כשר: "את אהבת בנו בלבו שחט."
+== מילים מנחות == הנ"י×3 | בן×10 | יחדיו | הל"כ×7 | ויקח×6 | מקום×4
+== חוקרים == חנה ספראי: אמונה ללא ביקורת→חטא. שולמית הר-אבן: היה צריך להתנגד.
+== ישמעאל vs יצחק == דמיון: נפרד מבן/מציית/מלאך. שוני: ישמעאל=שרה יוזמת; יצחק=ה' מצווה.`;
+
+const TOPICS = ["context_prev_chapter","command_gradual","verbs_flood_p3","hinneni_3times","yachdav_2times","father_son_dialogue","theological_difficulty","guiding_words_extra","blessings_end","isaac_disappears","commentators","comparison_ishmael"];
+const HEB = ["","א","ב","ג","ד","ה","ו","ז","ח","ט","י","יא","יב","יג","יד","טו","טז","יז","יח","יט"];
+const toH = n => (HEB[n]||String(n))+"׳";
+
+const SYSTEM = `אתה מורה לתנ"ך אדפטיבי. פרק: בראשית כ"ב.
+== חומר == ${KNOWLEDGE}
+== נושאים חובה == ${TOPICS.join(" | ")}
+== עקרונות ==
+1. תשובה שטחית→שאלה פשוטה. תשובה טובה→שאלה עמוקה.
+2. "אני לא יודע": תן את התשובה המלאה בפשטות, אז שאל שאלה קלה מאוד שמוודאת שהבין.
+3. משוב: עד 3 משפטים, עברית חמה. התחל בחיוב. אל תחזור על תשובת התלמיד.
+== JSON נקי בלי backticks ==
+{"feedback":"...","depth":"basic|medium|advanced","covered_topics":["..."],"next_question":"...","next_pasukim":[1],"question_type":"open|mc|fill","mc_options":["א....","ב....","ג....","ד...."],"fill_prefix":"...","fill_suffix":"...","hint_for_next":"...","illustration_mood":"journey|altar|stars|ram"}
+אם כל הנושאים נכסו→next_question:"DONE".`;
+
+// ─── State ───────────────────────────────────────────────────────────────
+let STATE = {
+  classCode:"", studentName:"", conv:[], covered:[],
+  qNum:0, Q:null, hint:"", ans:"", mcSel:null,
+  fb:null, lastAns:"", editing:false, loading:false,
+  done:false, log:[], started:false, showAll:false,
+  screen:"class" // class → name → lesson
+};
+
+// ─── Firebase save ────────────────────────────────────────────────────────
+function saveToFirebase() {
+  if (!STATE.classCode || !STATE.studentName) return;
+  const dc = STATE.log.reduce((a,b)=>{ a[b.d]=(a[b.d]||0)+1; return a; },{});
+  const depth = Object.entries(dc).sort((a,b)=>b[1]-a[1])[0]?.[0]||"basic";
+  const pct = Math.round((STATE.covered.length/TOPICS.length)*100);
+  const key = STATE.studentName.replace(/[.#$[\]]/g,"_");
+  db.ref(`classes/${STATE.classCode}/students/${key}`).set({
+    name: STATE.studentName,
+    pct, depth,
+    qNum: STATE.qNum,
+    coveredCount: STATE.covered.length,
+    done: STATE.done,
+    started: STATE.started,
+    ts: new Date().toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"})
+  });
+}
+
+// ─── Claude API ───────────────────────────────────────────────────────────
+async function callClaude(messages) {
+  const r = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1100,system:SYSTEM,messages})
+  });
+  const d = await r.json();
+  return d.content?.map(c=>c.text||"").join("")||"";
+}
+
+// ─── Word tip ─────────────────────────────────────────────────────────────
+function showWordTip(word) {
+  const cl = word.replace(/[^\u05d0-\u05ea\u05b0-\u05c7]/g,"");
+  const found = Object.entries(GLOSSARY).find(([k])=>k.replace(/[^\u05d0-\u05ea\u05b0-\u05c7]/g,"")===cl);
+  if (!found) return;
+  document.getElementById("wordtip-word").textContent = found[0];
+  document.getElementById("wordtip-meaning").textContent = found[1];
+  document.getElementById("wordtip").style.display = "block";
+}
+function closeWordTip() { document.getElementById("wordtip").style.display="none"; }
+
+function showSuccess() {
+  const el = document.getElementById("success-overlay");
+  el.style.display = "flex";
+  setTimeout(()=>{ el.style.display="none"; }, 1500);
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById("app");
+  const pct = Math.round((STATE.covered.length/TOPICS.length)*100);
+
+  // ── Class code screen ──
+  if (STATE.screen === "class") {
+    app.innerHTML = `
+    <div style="min-height:100vh;background:#f5ede0;display:flex;align-items:center;justify-content:center;">
+      <div class="fade" style="text-align:center;max-width:340px;padding:32px;">
+        <div style="font-family:'Frank Ruhl Libre',serif;font-size:26px;color:#3d2b1a;font-weight:700;margin-bottom:4px;">עֲקֵדַת יִצְחָק</div>
+        <div style="font-size:12px;color:#a08060;margin-bottom:28px;line-height:1.8;">שיעור אדפטיבי · בראשית כ״ב</div>
+        <div style="font-size:13px;color:#6b4c30;font-weight:600;text-align:right;margin-bottom:8px;">קוד כיתה:</div>
+        <input id="classInput" placeholder="הכנס קוד כיתה..." maxlength="10"
+          style="width:100%;padding:11px 14px;font-size:16px;background:#f9f3e8;border:1.5px solid #c4956a;border-radius:9px;color:#3d2b1a;margin-bottom:14px;text-align:center;letter-spacing:3px;text-transform:uppercase;"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter')confirmClass()"/>
+        <button class="btn" onclick="confirmClass()"
+          style="width:100%;background:#8b5e3c;color:#f9f3e8;padding:11px;border-radius:9px;font-weight:700;font-size:15px;border:none;">
+          ▶ המשך
+        </button>
+      </div>
+    </div>`;
+    setTimeout(()=>document.getElementById("classInput")?.focus(), 100);
+    return;
+  }
+
+  // ── Name screen ──
+  if (STATE.screen === "name") {
+    app.innerHTML = `
+    <div style="min-height:100vh;background:#f5ede0;display:flex;align-items:center;justify-content:center;">
+      <div class="fade" style="text-align:center;max-width:340px;padding:32px;">
+        <div style="font-family:'Frank Ruhl Libre',serif;font-size:26px;color:#3d2b1a;font-weight:700;margin-bottom:4px;">עֲקֵדַת יִצְחָק</div>
+        <div style="font-size:11px;color:#a08060;margin-bottom:6px;">כיתה: <b style="color:#8b5e3c">${STATE.classCode}</b></div>
+        <div style="font-size:12px;color:#a08060;margin-bottom:28px;">שיעור אדפטיבי · בראשית כ״ב</div>
+        <div style="font-size:13px;color:#6b4c30;font-weight:600;text-align:right;margin-bottom:8px;">מה השם שלך?</div>
+        <input id="nameInput" placeholder="כתוב את שמך כאן..." maxlength="30"
+          style="width:100%;padding:11px 14px;font-size:15px;background:#f9f3e8;border:1.5px solid #c4956a;border-radius:9px;color:#3d2b1a;margin-bottom:14px;"
+          onkeydown="if(event.key==='Enter')confirmName()"/>
+        <button class="btn" onclick="confirmName()"
+          style="width:100%;background:#8b5e3c;color:#f9f3e8;padding:11px;border-radius:9px;font-weight:700;font-size:15px;border:none;">
+          ▶ התחל
+        </button>
+      </div>
+    </div>`;
+    setTimeout(()=>document.getElementById("nameInput")?.focus(), 100);
+    return;
+  }
+
+  // ── Done screen ──
+  if (STATE.done) {
+    app.innerHTML = `
+    <div style="min-height:100vh;background:#f5ede0;display:flex;align-items:center;justify-content:center;">
+      <div style="text-align:center;max-width:360px;padding:40px;">
+        <div style="font-size:52px;margin-bottom:12px;">📜</div>
+        <div style="font-family:'Frank Ruhl Libre',serif;font-size:24px;color:#3d2b1a;font-weight:700;margin-bottom:6px;">כל הכבוד, ${STATE.studentName}!</div>
+        <div style="color:#a08060;font-size:13px;margin-bottom:22px;">סיימת את כל החומר של בראשית כ״ב</div>
+        <div style="margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#a08060;margin-bottom:4px;"><span>כיסוי חומר</span><span style="font-weight:700;color:#8b5e3c">${pct}%</span></div>
+          <div style="background:#ede0cc;border-radius:5px;height:7px;"><div style="background:linear-gradient(90deg,#c4956a,#d4a843);border-radius:5px;height:7px;width:${pct}%;"></div></div>
+        </div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  // ── Main lesson ──
+  const focusPas = (!STATE.showAll && STATE.Q?.pasukim?.length) ? STATE.Q.pasukim : null;
+
+  const pasukHTML = PASUK.map(p => {
+    const foc = !focusPas || focusPas.includes(p.n);
+    const words = p.t.split(" ").map((w,i) => {
+      const cl = w.replace(/[^\u05d0-\u05ea\u05b0-\u05c7]/g,"");
+      const hasG = Object.keys(GLOSSARY).some(k=>k.replace(/[^\u05d0-\u05ea\u05b0-\u05c7]/g,"")===cl);
+      return `<span ${hasG?`class="wdot" onclick="showWordTip('${w.replace(/'/g,"\\'")}')"`:''}
+        style="margin-left:2px;display:inline-block;">${w}</span>`;
+    }).join(" ");
+    return `<div style="display:flex;gap:6px;margin-bottom:6px;padding:5px 7px;border-radius:5px;
+      background:${foc?"rgba(139,94,60,.055)":"transparent"};opacity:${foc?1:0.28};
+      direction:rtl;align-items:flex-start;transition:opacity .3s;
+      border-right:2.5px solid ${foc?"#c4956a":"transparent"};">
+      <span style="font-size:9px;font-weight:700;color:#c4956a;flex-shrink:0;min-width:18px;padding-top:3px;">${toH(p.n)}</span>
+      <p style="margin:0;font-size:13px;font-family:'Frank Ruhl Libre',serif;line-height:2.1;color:#3d2b1a;direction:rtl;word-break:break-word;">${words}</p>
+    </div>`;
+  }).join("");
+
+  // Input area
+  let inputHTML = "";
+  if (!STATE.fb || STATE.editing) {
+    if (STATE.Q?.type === "mc" && !STATE.editing) {
+      inputHTML = (STATE.Q.opts||[]).map((o,i) =>
+        `<div class="mc-opt" onclick="selectMC('${o.replace(/'/g,"\\'")}',this)"
+          style="background:${STATE.mcSel===o?"rgba(139,94,60,.14)":"#ede0cc"};
+          border:1.5px solid ${STATE.mcSel===o?"#8b5e3c":"#c4956a"};
+          font-weight:${STATE.mcSel===o?700:400};">${o}</div>`
+      ).join("");
+    } else if (STATE.Q?.type === "fill" && !STATE.editing) {
+      inputHTML = `<div style="margin-bottom:10px;font-size:13px;color:#3d2b1a;line-height:2.2;direction:rtl;">
+        <span>${STATE.Q.pre} </span>
+        <input id="fillInput" value="${STATE.ans}" oninput="STATE.ans=this.value"
+          style="background:#f9f3e8;border:1.5px solid #c4956a;border-radius:4px;padding:2px 8px;font-size:13px;color:#3d2b1a;min-width:100px;text-align:right;direction:rtl;"/>
+        <span> ${STATE.Q.suf}</span>
+      </div>`;
+    } else {
+      inputHTML = `<textarea id="answerTA" placeholder="${STATE.editing?"תקן את תשובתך...":"כתוב את תשובתך כאן..."}"
+        oninput="STATE.ans=this.value"
+        style="width:100%;min-height:82px;background:#f9f3e8;border:1.5px solid #c4956a;border-radius:7px;padding:10px;color:#3d2b1a;font-size:13px;line-height:1.75;resize:vertical;direction:rtl;margin-bottom:10px;">${STATE.ans}</textarea>`;
+    }
+    inputHTML += `<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:8px;">
+      <button class="btn" onclick="submitAnswer(${STATE.editing})" ${STATE.loading||(STATE.Q?.type==="mc"?!STATE.mcSel:!STATE.ans.trim())?"disabled":""}
+        style="background:${STATE.loading||(STATE.Q?.type==="mc"?!STATE.mcSel:!STATE.ans.trim())?"#ede0cc":"#8b5e3c"};
+        color:${STATE.loading||(STATE.Q?.type==="mc"?!STATE.mcSel:!STATE.ans.trim())?"#a08060":"#f9f3e8"};
+        padding:8px 20px;border-radius:7px;font-weight:700;font-size:13px;border:none;">
+        ${STATE.loading?'<span class="sh">⏳ מעריך...</span>':STATE.editing?"✏️ שלח תיקון":"✅ שלח"}
+      </button>
+      ${!STATE.editing?`<button class="btn" onclick="submitAnswer(false,true)" ${STATE.loading?"disabled":""}
+        style="background:transparent;border:1.5px solid #c4956a;color:#a08060;padding:7px 13px;border-radius:7px;font-size:12px;">
+        🤷 אני לא יודע
+      </button>`:""}
+      ${STATE.editing?`<button class="btn" onclick="STATE.editing=false;render()"
+        style="background:transparent;border:1px solid #c4956a;color:#a08060;padding:7px 10px;border-radius:7px;font-size:12px;">ביטול</button>`:""}
+    </div>`;
+  }
+
+  // Feedback area
+  let fbHTML = "";
+  if (STATE.fb && !STATE.editing) {
+    fbHTML = `<div class="fade">
+      <div style="background:rgba(61,122,82,.08);border:1px solid rgba(61,122,82,.25);border-radius:8px;padding:12px;margin-bottom:9px;direction:rtl;">
+        <div style="font-size:9px;font-weight:700;margin-bottom:3px;color:#3d7a52;letter-spacing:1px;">💬 משוב</div>
+        <div style="font-size:13px;color:#3d2b1a;line-height:1.9;">${STATE.fb.feedback}</div>
+      </div>
+      ${STATE.hint?`<div style="background:rgba(184,134,11,.07);border:1px solid #d4a843;border-radius:6px;padding:6px 10px;margin-bottom:9px;font-size:11px;color:#b8860b;line-height:1.7;direction:rtl;">📖 לשאלה הבאה: ${STATE.hint}</div>`:""}
+      <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+        <button class="btn" onclick="advance()"
+          style="background:#8b5e3c;color:#f9f3e8;padding:8px 22px;border-radius:7px;font-weight:700;font-size:13px;border:none;">
+          ${STATE.fb.next_question==="DONE"?"סיים שיעור 📜":"שאלה הבאה ←"}
+        </button>
+        <button class="btn" onclick="startEdit()"
+          style="background:transparent;border:1px solid #c4956a;color:#a08060;padding:7px 11px;border-radius:7px;font-size:12px;">✏️ רוצה לשפר</button>
+      </div>
+    </div>`;
+  }
+
+  app.innerHTML = `
+  <div style="height:100vh;display:grid;grid-template-columns:1fr 1fr;background:#f5ede0;overflow:hidden;">
+
+    <!-- Left: Pasuk panel -->
+    <div style="overflow-y:auto;height:100vh;background:linear-gradient(180deg,#ede0cc 0%,#f9f3e8 100%);border-left:1.5px solid #c4956a;display:flex;flex-direction:column;">
+      <div style="padding:0 11px;padding-top:8px;flex-shrink:0;">
+        <div class="sroll"></div>
+        <div style="text-align:center;padding:8px 0 5px;border-bottom:1px solid rgba(196,149,106,.25);">
+          <div style="font-family:'Frank Ruhl Libre',serif;font-size:13px;font-weight:700;color:#8b5e3c;letter-spacing:2px;">בְּרֵאשִׁית כ״ב</div>
+          <div style="font-size:8px;color:#a08060;letter-spacing:2px;margin-top:2px;">לחץ על מילה לפירוש</div>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:8px 12px 14px;">${pasukHTML}</div>
+      <div style="padding:0 11px 7px;flex-shrink:0;"><div class="sroll"></div></div>
+      ${STATE.started&&focusPas?`<div style="text-align:center;padding:3px 0 9px;flex-shrink:0;">
+        <button onclick="STATE.showAll=!STATE.showAll;render()" style="background:transparent;border:none;color:#a08060;font-size:9px;cursor:pointer;font-family:'Heebo',sans-serif;text-decoration:underline;">
+          ${STATE.showAll?"פסוקים רלוונטיים בלבד":"הצג את כל הפרק"}
+        </button>
+      </div>`:""}
+    </div>
+
+    <!-- Right: Question panel -->
+    <div style="height:100vh;overflow-y:auto;background:#f9f3e8;display:flex;flex-direction:column;">
+
+      <!-- Header -->
+      <div style="position:sticky;top:0;z-index:10;background:#f9f3e8;border-bottom:1px solid rgba(196,149,106,.3);padding:8px 17px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div>
+          <div style="font-size:9px;letter-spacing:2px;color:#c4956a;font-weight:700;">עֲקֵדַת יִצְחָק ✦ ${STATE.classCode} ✦ שלום, ${STATE.studentName}</div>
+          ${STATE.started?`<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+            <div style="background:#ede0cc;border-radius:4px;height:5px;width:95px;overflow:hidden;">
+              <div style="background:linear-gradient(90deg,#c4956a,#d4a843);height:5px;width:${pct}%;transition:width .6s;"></div>
+            </div>
+            <span style="font-size:9px;color:#a08060;font-weight:600;">${pct}%</span>
+          </div>`:""}
+        </div>
+      </div>
+
+      <div style="padding:14px 18px 55px;direction:rtl;flex:1;">
+        ${!STATE.started?`
+        <div class="fade" style="text-align:center;padding-top:44px;">
+          <div style="font-family:'Frank Ruhl Libre',serif;font-size:19px;color:#3d2b1a;margin-bottom:6px;font-weight:700;">שלום ${STATE.studentName} 👋</div>
+          <div style="font-size:12px;color:#a08060;margin-bottom:26px;line-height:1.9;">מוכן להתחיל?<br>השאלות מתאימות את עצמן לפי התשובות שלך</div>
+          <button class="btn" onclick="startLesson()" ${STATE.loading?"disabled":""}
+            style="background:${STATE.loading?"#ede0cc":"#8b5e3c"};color:${STATE.loading?"#a08060":"#f9f3e8"};padding:10px 32px;border-radius:9px;font-weight:700;font-size:14px;border:none;">
+            ${STATE.loading?'<span class="sh">⏳ מכין...</span>':"▶ יאללה, מתחילים"}
+          </button>
+        </div>`:""}
+
+        ${STATE.started&&STATE.Q?`
+        <div class="fade">
+          ${STATE.hint&&!STATE.fb?`<div style="background:rgba(184,134,11,.07);border:1px solid #d4a843;border-radius:7px;padding:7px 11px;margin-bottom:10px;font-size:11px;color:#b8860b;line-height:1.8;direction:rtl;">📖 <b>לפני שקוראים:</b> ${STATE.hint}</div>`:""}
+          <div style="background:#ede0cc;border:1px solid #c4956a;border-right:4px solid #c4956a;border-radius:9px;padding:14px;margin-bottom:11px;">
+            <div style="font-size:9px;font-weight:700;color:#c4956a;letter-spacing:2px;margin-bottom:6px;">
+              שאלה ${toH(STATE.qNum+1)}
+              ${STATE.Q.pasukim?.length>0?`<span style="font-weight:400;color:#a08060;margin-right:5px;">— פסוק${STATE.Q.pasukim.length>1?"ים":""} ${STATE.Q.pasukim.map(toH).join(", ")}</span>`:""}
+            </div>
+            <p style="margin:0;font-size:13px;line-height:1.9;color:#3d2b1a;font-family:'Heebo',sans-serif;direction:rtl;">${STATE.Q.text||"..."}</p>
+          </div>
+          ${inputHTML}
+          ${fbHTML}
+        </div>`:""}
+      </div>
+    </div>
+  </div>`;
+
+  // Restore textarea value
+  const ta = document.getElementById("answerTA");
+  if (ta) { ta.value = STATE.ans; ta.addEventListener("input", e=>STATE.ans=e.target.value); if(STATE.started&&STATE.Q?.type==="open"&&!STATE.fb) ta.focus(); }
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────
+function confirmClass() {
+  const v = document.getElementById("classInput")?.value?.trim().toUpperCase();
+  if (!v) return;
+  STATE.classCode = v;
+  STATE.screen = "name";
+  render();
+}
+
+function confirmName() {
+  const v = document.getElementById("nameInput")?.value?.trim();
+  if (!v) return;
+  STATE.studentName = v;
+  STATE.screen = "lesson";
+  saveToFirebase();
+  render();
+}
+
+async function startLesson() {
+  STATE.loading = true; render();
+  saveToFirebase();
+  const init = `שיעור מתחיל. תלמיד: ${STATE.studentName}. כיתה: ${STATE.classCode}. אין נושאים שנכסו.\nצור שאלה פתיחה קלה מאוד על פסוק א׳. feedback:"". covered_topics:[].`;
+  try {
+    const raw = await callClaude([{role:"user",content:init}]);
+    const p = JSON.parse(raw.replace(/```json|```/g,"").trim());
+    STATE.Q = {text:p.next_question, pasukim:p.next_pasukim||[], type:p.question_type||"open", opts:p.mc_options||[], pre:p.fill_prefix||"", suf:p.fill_suffix||""};
+    STATE.hint = p.hint_for_next||"";
+    STATE.conv = [{role:"user",content:init},{role:"assistant",content:raw}];
+  } catch {
+    STATE.Q = {text:"קרא את פסוק א׳. מה קורה שם?", pasukim:[1], type:"open", opts:[], pre:"", suf:""};
+  }
+  STATE.started = true;
+  STATE.loading = false;
+  saveToFirebase();
+  render();
+}
+
+async function submitAnswer(isEdit=false, dontKnow=false) {
+  const finalAns = dontKnow ? "אני לא יודע" : (STATE.Q?.type==="mc" ? STATE.mcSel : STATE.ans.trim());
+  if (!finalAns || STATE.loading) return;
+  STATE.loading = true; STATE.fb = null; render();
+  const remaining = TOPICS.filter(t=>!STATE.covered.includes(t));
+  const msg = `שאלה ${STATE.qNum+1} (${STATE.Q?.type||"open"}): "${STATE.Q?.text}"\nתשובה: "${finalAns}"${dontKnow?" [אני לא יודע — חובה להסביר את התשובה]":""}\nנכסו: ${STATE.covered.join(",")||"אין"} | נותרו: ${remaining.join(",")}${isEdit?" [תיקון]":""}`;
+  const nc = [...STATE.conv,{role:"user",content:msg}];
+  try {
+    const raw = await callClaude(nc);
+    const p = JSON.parse(raw.replace(/```json|```/g,"").trim());
+    STATE.covered = [...new Set([...STATE.covered,...(p.covered_topics||[])])];
+    STATE.fb = p;
+    STATE.hint = p.next_question!=="DONE" ? (p.hint_for_next||"") : "";
+    STATE.lastAns = finalAns;
+    STATE.log.push({d:p.depth});
+    STATE.conv = [...nc,{role:"assistant",content:raw}];
+    if (p.next_question==="DONE") STATE.done = true;
+    if (!dontKnow && p.depth!=="basic") showSuccess();
+  } catch {
+    STATE.fb = {feedback:"תודה! ממשיכים.",depth:"basic",covered_topics:[],next_question:"",next_pasukim:[],question_type:"open",mc_options:[],fill_prefix:"",fill_suffix:"",hint_for_next:"",illustration_mood:"stars"};
+  }
+  STATE.editing = false;
+  STATE.loading = false;
+  saveToFirebase();
+  render();
+}
+
+function selectMC(opt) {
+  STATE.mcSel = opt;
+  render();
+}
+
+function advance() {
+  if (!STATE.fb) return;
+  if (STATE.fb.next_question==="DONE" || STATE.done) { STATE.done=true; render(); return; }
+  STATE.Q = {text:STATE.fb.next_question, pasukim:STATE.fb.next_pasukim||[], type:STATE.fb.question_type||"open", opts:STATE.fb.mc_options||[], pre:STATE.fb.fill_prefix||"", suf:STATE.fb.fill_suffix||""};
+  STATE.qNum++; STATE.ans=""; STATE.mcSel=null;
+  STATE.fb=null; STATE.lastAns=""; STATE.editing=false; STATE.showAll=false;
+  render();
+}
+
+function startEdit() {
+  STATE.editing = true;
+  STATE.ans = STATE.lastAns;
+  render();
+}
+
+// ─── Start ────────────────────────────────────────────────────────────────
+render();
+
+}); // end _firebaseReady
+</script>
+</body>
+</html>
