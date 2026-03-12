@@ -62,10 +62,10 @@ let S={
 
 // ── Event delegation — the key fix for Google Sites iframes ──────────────
 document.addEventListener("click", e=>{
-  const el=e.target.closest("[data-action]");
+  const el=e.target.closest("[data-action]")||e.target.parentElement?.closest("[data-action]");
   if(!el)return;
-  const a=el.dataset.action;
-  const v=el.dataset.val||"";
+  const a=el.getAttribute("data-action");
+  const v=el.getAttribute("data-val")||"";
   if(a==="login")        doLogin();
   else if(a==="logout")  logout();
   else if(a==="tab")     { S.tab=v; renderCurrent(); }
