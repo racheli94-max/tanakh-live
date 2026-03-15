@@ -300,19 +300,7 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
 .onboard-btn:hover{transform:translateY(-1px);}
 
 /* Infographic screen */
-.infographic-overlay{display:none;position:fixed;inset:0;background:rgba(30,12,2,.82);
-  align-items:center;justify-content:center;z-index:220;padding:20px;backdrop-filter:blur(3px);}
-.infographic-overlay.open{display:flex;}
-.infographic-box{background:linear-gradient(160deg,#fffbee,#f5e8c4);border:2px solid var(--border-gold);
-  border-radius:var(--radius-lg);padding:28px 24px;max-width:600px;width:100%;
-  box-shadow:0 20px 60px rgba(40,15,0,.45);direction:rtl;max-height:90vh;overflow-y:auto;}
-.infographic-title{font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-deep);
-  margin-bottom:16px;text-align:center;}
-.infographic-content{width:100%;min-height:200px;display:flex;align-items:center;
-  justify-content:center;margin-bottom:18px;}
-.infographic-content svg{width:100%;height:auto;max-height:380px;}
-.infographic-loading{font-size:14px;color:var(--text-light);text-align:center;padding:40px;}
-.infographic-actions{display:flex;gap:12px;justify-content:center;}
+
 
 /* Finished banner */
 .finished-banner{display:none;position:fixed;inset:0;background:rgba(30,12,2,.75);
@@ -611,15 +599,26 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
   </div>
 </div>
 
-<!-- Infographic Screen -->
-<div class="infographic-overlay" id="infographicScreen">
-  <div class="infographic-box">
-    <div class="infographic-title">📊 <span id="infographicTitle">סיכום חזותי של הפרק</span></div>
-    <div class="infographic-content" id="infographicContent">
-      <div class="infographic-loading">⏳ יוצר אינפוגרפיקה...</div>
+<!-- Summary Card (replaces infographic) -->
+<div style="display:none;position:fixed;inset:0;background:rgba(30,12,2,.82);
+  z-index:400;align-items:center;justify-content:center;padding:20px;overflow-y:auto"
+  id="summaryCard">
+  <div style="background:linear-gradient(160deg,#fffbee,#f5e8c4);border:2px solid var(--border-gold);
+    border-radius:var(--radius-lg);padding:32px 28px;width:100%;max-width:520px;
+    box-shadow:0 20px 60px rgba(40,15,0,.4);direction:rtl;text-align:right;">
+    <div style="text-align:center;font-size:48px;margin-bottom:6px" id="summaryEmoji">🌟</div>
+    <h2 style="font-family:'Frank Ruhl Libre',serif;font-size:24px;color:var(--brown-deep);
+      text-align:center;margin-bottom:4px" id="summaryTitle">סיימת!</h2>
+    <div style="font-size:36px;font-weight:700;color:var(--brown-primary);text-align:center;
+      margin:8px 0 20px" id="summaryScore"></div>
+    <div style="border-top:1px solid var(--border-gold);padding-top:16px;margin-bottom:20px">
+      <div style="font-size:12px;font-weight:600;color:var(--gold-deep);letter-spacing:2px;
+        margin-bottom:10px;text-transform:uppercase">מה למדת</div>
+      <div id="summaryPoints" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
-    <div class="infographic-actions">
-      <button class="btn-back-picker" onclick="window.closeInfographic()">← המשך</button>
+    <div style="text-align:center">
+      <button class="btn-back-picker" onclick="window.closeSummaryCard()"
+        style="padding:11px 32px;font-size:15px">← המשך</button>
     </div>
   </div>
 </div>
@@ -974,7 +973,7 @@ window.selectChapter = async function(cid) {
     APP.isWaiting         = false;
     APP.awaitingMC        = false;
 
-    await loadBibleText(ch.book, ch.chapter);
+    await loadBibleText(ch.book, ch.chapter, ch.verseFrom||null, ch.verseTo||null);
     startLearningApp();
   } catch(e) {
     showLoginError('שגיאה בטעינה: '+e.message);
@@ -1000,16 +999,26 @@ window.backToPicker = async function() {
 /* ============================================================
    Load Bible text
    ============================================================ */
-async function loadBibleText(heBook, chapter) {
+async function loadBibleText(heBook, chapter, verseFrom, verseTo) {
   try {
     var enBook = BOOK_SEFARIA[heBook] || heBook;
     var url = 'https://www.sefaria.org/api/texts/'+enBook+'.'+chapter+'?lang=he&commentary=0&context=0';
     var res = await fetch(url);
     var data = await res.json();
     var verses = data.he || [];
+    // Apply verse range if specified
+    if (verseFrom || verseTo) {
+      var from = (verseFrom ? verseFrom - 1 : 0);
+      var to   = (verseTo   ? verseTo        : verses.length);
+      verses = verses.slice(from, to);
+      // Offset verse numbers for display
+      APP.verseOffset = verseFrom ? verseFrom - 1 : 0;
+    } else {
+      APP.verseOffset = 0;
+    }
     renderBibleText(heBook, chapter, verses);
   } catch(e) {
-    APP.totalVerses = APP.totalVerses || 10; // fallback so progress isn't stuck
+    APP.totalVerses = APP.totalVerses || 10;
     document.getElementById('bibleTextArea').innerHTML =
       '<p style="color:var(--text-light);text-align:center;padding:40px 20px">לא ניתן לטעון את הפרק כעת. השאלות ממשיכות כרגיל.</p>';
   }
@@ -1049,12 +1058,14 @@ function toHebrewLetter(n) {
 }
 function renderBibleText(book, chapter, verses) {
   document.getElementById('bibleTitle').textContent = (book||'') + ' פרק ' + toHebrewLetter(parseInt(chapter)||0);
-  APP.totalVerses = verses.length; // track how many verses in this chapter
-  APP.verses = verses.map(function(v){ return decodeEntities(String(v||'').replace(/<[^>]+>/g,'')); }); // store plain text, decode HTML entities
+  APP.totalVerses = verses.length;
+  APP.verses = verses.map(function(v){ return decodeEntities(String(v||'').replace(/<[^>]+>/g,'')); });
   var area = document.getElementById('bibleTextArea');
+  var offset = APP.verseOffset || 0;
   if(!verses.length){ area.innerHTML='<p style="color:var(--text-light);text-align:center;padding:40px">הפרק לא נמצא</p>'; return; }
   area.innerHTML = verses.map(function(text,i) {
-    var num = i+1;
+    var num = i + 1 + offset;   // real verse number in the chapter
+    var displayIdx = i + 1;     // index within the loaded slice
     var hNum = toHebrewLetter(num);
     var safe = decodeEntities(String(text||'').replace(/<[^>]+>/g,''));
     var wordSpans = safe.split(' ').map(function(w) {
@@ -1283,14 +1294,19 @@ function buildSystemPrompt() {
     + '   ה) אסור לרמוז על סיום, לומר "עוד מעט נסיים", או לדבר על פרק אחר.',
 
     '11. **פורמט [בוחן] מדויק — חובה לשמור בדיוק:**\n'
+    + '   כתוב [סיום] ואז [בוחן] ואז 5 שאלות:\n'
     + '   [סיום]\n'
     + '   [בוחן]\n'
-    + '   1. שאלה? א) ... ב) ... ג) ... ד) ...\n'
-    + '   2. שאלה? א) ... ב) ... ג) ... ד) ...\n'
-    + '   3. שאלה? א) ... ב) ... ג) ... ד) ...\n'
-    + '   4. שאלה? א) ... ב) ... ג) ... ד) ...\n'
-    + '   5. שאלה? א) ... ב) ... ג) ... ד) ...\n'
-    + '   [תשובות]:1-X,2-X,3-X,4-X,5-X',
+    + '   1. שאלה על תוכן הפרק? א) תשובה נכונה ב) תשובה שגויה הגיונית ג) תשובה שגויה הגיונית ד) תשובה שגויה הגיונית\n'
+    + '   2. ...\n'
+    + '   [תשובות]:1-X,2-X,3-X,4-X,5-X\n'
+    + '\n'
+    + '   **כללי בוחן חובה:**\n'
+    + '   א) שאלות — על תוכן הפרק בלבד, לא על מספרי פסוקים.\n'
+    + '   ב) כל 4 תשובות חייבות להיות הגיוניות — לא "כלום מהאמור" או "תשובות א+ב".\n'
+    + '   ג) אם מזכירים פסוקים בשאלות — **חובה** אותיות עבריות עם גרש: פסוק ג\', פסוק יד\'. אסור: פסוק 3, פסוק 14.\n'
+    + '   ד) תשובות קצרות וברורות — משפט אחד לכל היותר.\n'
+    + '   ה) X ב-[תשובות] = האות העברית של התשובה הנכונה (א/ב/ג/ד).',
     '12. מונחים מקצועיים (ריבוי פעלים, מילה מנחה, ניגוד וכו\') — שאל תחילה מה הם.',
     '13. **פרשנים:** כשאתה שואל על פרשן מסוים (רש"י, רמב"ן, אבן עזרא וכד\') — '
     + 'חובה לצטט את לשון הפירוש המלא ולא לסכם אותו. '
@@ -1815,15 +1831,16 @@ function parseAndShowQuiz(text) {
     if (inQuiz && /^\d+\./.test(l)) {
       var qText = l.replace(/^\d+\.\s*/, '');
       var opts = [];
-      // pull options from same line or next
-      var optMatch = qText.match(/([א-ד]\)\s*[^א-ד]+)/g);
+      var optMatch = qText.match(/([א-ד]\)\s*[^א-ד\n]+)/g);
       if (optMatch) {
         qText = qText.split('א)')[0].trim();
         opts = optMatch.map(function(o){ return o.trim(); });
       }
+      // Convert Arabic verse numbers to Hebrew in question text
+      qText = arabToHebrew(qText);
       questions.push({ q: qText, opts: opts });
     } else if (inQuiz && /^[א-ד]\)/.test(l) && questions.length) {
-      questions[questions.length-1].opts.push(l);
+      questions[questions.length-1].opts.push(arabToHebrew(l));
     }
   });
   // Parse answers: 1-ב,2-א etc.
@@ -1834,6 +1851,13 @@ function parseAndShowQuiz(text) {
       if (parts.length===2) answers.push(parts[1].trim());
     });
   }
+  // Filter out bad option patterns like "כל התשובות", "אף אחת" — replace with placeholder
+  questions.forEach(function(q) {
+    q.opts = q.opts.filter(function(o) {
+      var low = o.replace(/^[א-ד]\)\s*/,'').trim();
+      return low.length > 1 && !/^(כל |אף |תשובות א|א\+ב|א' וב')/.test(low);
+    });
+  });
   // If parsing failed — request quiz again explicitly, don't auto-finish
   if (questions.length < 3) {
     setTimeout(async function() {
@@ -1910,65 +1934,40 @@ window.submitQuiz = function() {
   syncToFirebase();
   setTimeout(function(){
     document.getElementById('quizScreen').style.display='none';
-    showInfographic(pct);
+    showSummaryCard(pct);
   }, 800);
 };
 
-async function showInfographic(quizScore) {
+function showSummaryCard(quizScore) {
   var ch = APP.currentChapter || {};
   var chLabel = ch.title || ((ch.book||'') + ' פרק ' + toHebrewLetter(parseInt(ch.chapter)||0));
-  document.getElementById('infographicTitle').textContent = 'סיכום חזותי — ' + chLabel;
-  document.getElementById('infographicContent').innerHTML = '<div class="infographic-loading">⏳ יוצר אינפוגרפיקה...</div>';
-  document.getElementById('infographicScreen').classList.add('open');
-
-  // Build prompt for Gemini to generate SVG infographic
-  var prompt = [
-    'צור SVG אינפוגרפיקה יפה וצבעונית (רוחב 560, גובה 360) שמסכמת את ' + chLabel + ' בתנ"ך.',
-    'הסיכום: ' + (ch.summary || 'ללא סיכום'),
-    '',
-    'דרישות SVG:',
-    '- כתוב SVG תקני בלבד, ללא JavaScript, ללא CSS חיצוני',
-    '- כיוון RTL: טקסט עברי צמוד לימין, שימוש ב-text-anchor="end" או "middle"',
-    '- צבעי רקע חמים: #fdf6e3 לרקע, #7b3b0a לכותרות, #c49a22 לפרטים',
-    '- כלול: כותרת הפרק, 3-4 נקודות עיקריות, דמויות מרכזיות (אם יש), מסר/מוסר השכל',
-    '- עיצוב מקצועי עם קופסאות, חיצים, או ציר זמן לפי הנושא',
-    '- גופן: font-family="Arial, sans-serif"',
-    '- החזר SVG בלבד, בלי markdown, בלי הסבר'
-  ].join('\n');
-
-  try {
-    var apiKey = APP.settings && APP.settings.claudeApiKey;
-    if (!apiKey) throw new Error('אין מפתח API');
-    var resp = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=' + apiKey,
-      { method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          contents: [{role:'user', parts:[{text: prompt}]}],
-          generationConfig: {maxOutputTokens: 2000, temperature: 0.7}
-        })
-      }
-    );
-    var data = await resp.json();
-    var svgText = (data.candidates&&data.candidates[0]&&data.candidates[0].content&&
-                   data.candidates[0].content.parts&&data.candidates[0].content.parts[0].text) || '';
-    // Extract SVG tags only
-    var svgMatch = svgText.match(/<svg[\s\S]*?<\/svg>/i);
-    if (svgMatch) {
-      document.getElementById('infographicContent').innerHTML = svgMatch[0];
-    } else {
-      document.getElementById('infographicContent').innerHTML =
-        '<div class="infographic-loading" style="color:var(--text-medium)">לא הצלחנו לייצר אינפוגרפיקה כרגע.</div>';
-    }
-  } catch(e) {
-    document.getElementById('infographicContent').innerHTML =
-      '<div class="infographic-loading" style="color:var(--text-medium)">שגיאה: ' + e.message + '</div>';
+  // Score display
+  var emoji = quizScore >= 80 ? '🌟' : quizScore >= 60 ? '👍' : '💪';
+  document.getElementById('summaryEmoji').textContent = emoji;
+  document.getElementById('summaryTitle').textContent = 'סיימת את ' + chLabel;
+  document.getElementById('summaryScore').textContent = quizScore !== null ? quizScore + '%' : '';
+  // Build summary points from chapter data
+  var points = [];
+  if (ch.summary) {
+    // Split summary into up to 4 bullet points by sentence
+    var sentences = ch.summary.replace(/\n+/g,' ').split(/[.!?]\s+/).filter(function(s){ return s.trim().length > 10; });
+    points = sentences.slice(0,4).map(function(s){ return s.trim(); });
   }
-  // Pass quiz score to doFinish for after infographic closes
+  var container = document.getElementById('summaryPoints');
+  if (points.length) {
+    container.innerHTML = points.map(function(p){
+      return '<div style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.6;color:var(--text-medium)">'
+        +'<span style="color:var(--gold-deep);flex-shrink:0;margin-top:2px">✦</span><span>'+p+'</span></div>';
+    }).join('');
+  } else {
+    container.innerHTML = '<div style="font-size:13px;color:var(--text-light)">עבודה טובה! המורה רואה את ההתקדמות שלך.</div>';
+  }
+  document.getElementById('summaryCard').style.display = 'flex';
   window._pendingQuizScore = quizScore;
 }
 
-window.closeInfographic = function() {
-  document.getElementById('infographicScreen').classList.remove('open');
+window.closeSummaryCard = function() {
+  document.getElementById('summaryCard').style.display = 'none';
   doFinish(window._pendingQuizScore !== undefined ? window._pendingQuizScore : null);
   window._pendingQuizScore = undefined;
 };
