@@ -332,6 +332,11 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
       <div class="topbar-logo" style="display:flex;align-items:center;gap:10px"><img src="logo.png" style="height:30px"> לוח המורה</div>
       <div class="topbar-sub" id="topbarSub"></div>
     </div>
+    <div class="class-switcher" id="classSwitcher" style="display:none">
+      <span style="font-size:11px;color:rgba(232,200,112,.6)">כיתה:</span>
+      <select id="classSwitcherSel" onchange="window.switchClass(this.value)"></select>
+      <button class="class-add-btn" onclick="window.openAddClass()">+ כיתה</button>
+    </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span class="live-dot"></span>
       <span style="font-size:12px;color:rgba(232,200,112,.7)">זמן אמת</span>
@@ -376,6 +381,23 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
         <button class="btn-secondary" onclick="window.generateLessonSummary()" id="summaryBtn" title="סיכום שיעור אוטומטי">🤖 סיכום שיעור</button>
       </div>
     </div>
+    <div class="score-filter-row" id="scoreFilterRow" style="display:none">
+      <label>סנן לפי ציון בוחן — מתחת ל:</label>
+      <input type="range" id="scoreFilterRange" min="0" max="100" value="100" step="10"
+        oninput="window.updateScoreFilter(this.value)">
+      <span class="score-filter-val" id="scoreFilterVal">הכל</span>
+      <button class="btn-secondary" style="font-size:11px;padding:4px 8px" onclick="window.resetScoreFilter()">נקה</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+      <button class="btn-secondary" style="font-size:11px;padding:4px 10px" onclick="window.toggleScoreFilter()">🎯 סנן לפי ציון</button>
+    </div>
+    <!-- Progress Chart -->
+    <div id="progressChart" style="background:rgba(255,252,240,.8);border:1px solid var(--border-gold);
+      border-radius:12px;padding:16px 20px;margin-bottom:18px;display:none;">
+      <div style="font-size:13px;font-weight:600;color:var(--brown-primary);margin-bottom:12px">📊 התפלגות כיתה</div>
+      <div style="display:flex;gap:6px;align-items:flex-end;height:60px;direction:ltr" id="chartBars"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;direction:ltr" id="chartLabels"></div>
+    </div>
     <div class="students-grid" id="studentsGrid">
       <div class="empty-state"><div class="empty-icon">⏳</div><div>ממתין לתלמידים...</div></div>
     </div>
@@ -388,7 +410,28 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
       <div class="chapters-list" id="chaptersList">
         <div class="no-chapters">טוען...</div>
       </div>
-      <button class="btn-primary" onclick="window.openAddChapter()">+ הוסף פרק חדש</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <button class="btn-primary" onclick="window.openAddChapter()">+ הוסף פרק</button>
+        <button class="btn-secondary" onclick="window.openAddFolder()">📁 תיקייה חדשה</button>
+      </div>
+
+      <!-- Add Folder Form -->
+      <div id="folderForm" style="display:none;background:rgba(196,154,34,.07);border:1.5px solid var(--border-gold);border-radius:10px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:700;color:var(--brown-primary);margin-bottom:10px;">📁 תיקייה חדשה</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="folderNameInput" placeholder="שם התיקייה — למשל: בראשית" maxlength="40"
+            style="flex:1;padding:9px 12px;border:1.5px solid var(--border-gold);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;direction:rtl;">
+          <select id="folderColorInput" style="padding:9px;border:1.5px solid var(--border-gold);border-radius:8px;font-size:13px;">
+            <option value="#c49a22">🟡 זהב</option>
+            <option value="#2d5a54">🟢 ירוק</option>
+            <option value="#8b3a2a">🔴 אדום</option>
+            <option value="#3a6a8a">🔵 כחול</option>
+            <option value="#6a3a8a">🟣 סגול</option>
+          </select>
+          <button class="btn-primary" style="font-size:13px;padding:9px 16px" onclick="window.saveFolder()">שמור</button>
+          <button class="btn-secondary" style="font-size:13px;padding:9px 12px" onclick="document.getElementById('folderForm').style.display='none'">ביטול</button>
+        </div>
+      </div>
 
       <div class="chapter-form" id="chapterForm">
         <input type="hidden" id="editChapterId">
@@ -545,6 +588,12 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
         <div class="form-group">
           <label>כותרת מותאמת (אופציונלי)</label>
           <input type="text" id="formTitle" placeholder='למשל: "יוסף ואחיו"'>
+        </div>
+        <div class="form-group">
+          <label>תיקייה</label>
+          <select id="formFolder">
+            <option value="">— ללא תיקייה —</option>
+          </select>
         </div>
         <div class="form-group">
           <label>העלאת קובץ (PDF / Word / מצגת) — הטקסט ייקרא אוטומטית</label>
@@ -736,6 +785,8 @@ window.doTeacherLogin = async function() {
     showScreen('main');
     listenToData();
     renderRoster();
+    addToMyClasses(code, s.teacherName ? s.teacherName+' ('+code.toUpperCase()+')' : code.toUpperCase());
+    renderClassSwitcher();
 
   } catch(e) { err.textContent=e.message;err.style.display='block';showScreen('login'); }
 };
@@ -743,7 +794,8 @@ window.doTeacherLogin = async function() {
 window.doLogout = function() {
   if(T.sListener) T.db.ref('classes/'+T.classCode+'/students').off('value',T.sListener);
   if(T.cListener) T.db.ref('classes/'+T.classCode+'/chapters').off('value',T.cListener);
-  T={db:T.db,classCode:null,settings:null,students:{},chapters:{},filter:'all',chFilter:'all',sListener:null,cListener:null};
+  if(T.fListener) T.db.ref('classes/'+T.classCode+'/folders').off('value',T.fListener);
+  T={db:T.db,classCode:null,settings:null,students:{},chapters:{},folders:{},filter:'all',chFilter:'all',scoreFilter:100,sListener:null,cListener:null,fListener:null,roster:[]};
   document.getElementById('loginCode').value='';document.getElementById('loginPass').value='';
   showScreen('login');
 };
@@ -765,7 +817,46 @@ function listenToData() {
   T.cListener = T.db.ref('classes/'+T.classCode+'/chapters').on('value',function(snap){
     T.chapters=snap.val()||{};renderChaptersList();updateChFilter();
   });
+  T.fListener = T.db.ref('classes/'+T.classCode+'/folders').on('value',function(snap){
+    T.folders=snap.val()||{};renderChaptersList();updateFolderSelect();
+  });
+}
 
+/* ---- Progress Chart ---- */
+function buildProgressChart(sessions) {
+  var chart = document.getElementById('progressChart');
+  if(!sessions.length) { chart.style.display='none'; return; }
+  chart.style.display='block';
+  var buckets = [
+    {label:'0%',  count:0, color:'#e8d0a0'},
+    {label:'1-25%', count:0, color:'#c49a22'},
+    {label:'26-50%',count:0, color:'#a07010'},
+    {label:'51-75%',count:0, color:'#7a5a0a'},
+    {label:'76-99%',count:0, color:'#4a8a3a'},
+    {label:'100%',  count:0, color:'#2a6a2a'},
+  ];
+  sessions.forEach(function(x) {
+    var p = x.ses.progress||0;
+    if(p===0) buckets[0].count++;
+    else if(p<=25) buckets[1].count++;
+    else if(p<=50) buckets[2].count++;
+    else if(p<=75) buckets[3].count++;
+    else if(p<100)  buckets[4].count++;
+    else            buckets[5].count++;
+  });
+  var max = Math.max.apply(null, buckets.map(function(b){return b.count;})) || 1;
+  var barsEl  = document.getElementById('chartBars');
+  var labsEl  = document.getElementById('chartLabels');
+  barsEl.innerHTML = buckets.map(function(b) {
+    var h = Math.round(b.count/max*52)+4;
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1">'
+      +'<div style="font-size:10px;color:#5c3010;font-weight:600">'+(b.count||'')+'</div>'
+      +'<div style="width:100%;background:'+b.color+';border-radius:4px 4px 0 0;height:'+h+'px;transition:height .4s ease"></div>'
+      +'</div>';
+  }).join('');
+  labsEl.innerHTML = buckets.map(function(b) {
+    return '<div style="flex:1;text-align:center;font-size:9px;color:var(--text-light)">'+b.label+'</div>';
+  }).join('');
 }
 
 /* ---- Dashboard ---- */
@@ -797,6 +888,7 @@ function renderDashboard() {
     if(T.filter==='active'&&(x.ses.finished||(x.ses.questionsAnswered||0)===0)) return false;
     if(T.filter==='help'&&!h) return false;
     if(T.chFilter!=='all'&&x.cid!==T.chFilter) return false;
+    if((T.scoreFilter||100) < 100 && (x.ses.quizScore==null || x.ses.quizScore >= T.scoreFilter)) return false;
     return true;
   });
 
@@ -815,6 +907,8 @@ function renderDashboard() {
     return ((b.ses&&b.ses.lastActivity)||0)-((a.ses&&a.ses.lastActivity)||0);
   });
 
+  // Progress chart
+  buildProgressChart(sessions);
   var grid=document.getElementById('studentsGrid');
   if(!cards.length) {
     grid.innerHTML='<div class="empty-state"><div class="empty-icon">'+(total===0?'⏳':'🔍')+'</div><div>'+(total===0?'ממתין לתלמידים...':'אין תלמידים בסינון זה')+'</div></div>';
@@ -861,7 +955,9 @@ function buildStudentCard(c) {
   var squares=''; for(var i=0;i<12;i++) squares+='<div class="tsq'+(topics[i]?' on':'')+'"></div>';
 
   var tag='';
-  if(s.finished&&(!s.quizScore||s.quizScore>=50)) tag='<div class="finished-tag">✓ סיים</div>';
+  var freshFinish = s.finished && s.lastActivity && (Date.now()-s.lastActivity < 10*60*1000);
+  if(freshFinish) tag='<div class="finished-tag" style="background:#2a7c5a;animation:pulse 1.5s ease infinite">🆕 סיים עכשיו!</div>';
+  else if(s.finished&&(!s.quizScore||s.quizScore>=50)) tag='<div class="finished-tag">✓ סיים</div>';
   else if(helpFlag) tag='<div class="alert-tag" title="'+esc(reasonTitle)+'">⚠ זקוק לעזרה</div>';
 
   var helpLine=helpFlag
@@ -880,9 +976,11 @@ function buildStudentCard(c) {
     '<div class="prog-outer"><div class="prog-inner" style="width:'+progress+'%"></div></div>'+
     '<div class="topics-row">'+squares+'</div>'+
     '<div class="card-footer">'+
-      '<span style="font-size:12px;color:var(--text-light)">'+(s.finished?'🏆 סיים':'בתהליך')+(s.quizScore!=null?' · בוחן: <strong>'+s.quizScore+'%</strong>':'')+'</span>'+
+      '<span style="font-size:12px;color:var(--text-light)">'+(s.finished?'🏆 סיים':'בתהליך')+(s.quizScore!=null?' · בוחן: <strong>'+s.quizScore+'%</strong>':'')+
+        (s.timeSpent ? ' · <span class="time-spent-badge">⏱ '+formatTime(s.timeSpent)+'</span>' : '')+'</span>'+
       '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
         '<button class="conv-btn" onclick="window.convClick(\''+cardKey+'\')">💬 שיחה</button>'+
+        '<button class="conv-btn" onclick="window.noteClick(\''+cardKey+'\')" style="color:#1e5c2a;border-color:rgba(45,110,58,.3)">📝 הערה</button>'+
         '<button class="conv-btn" onclick="window.resetClick(\''+cardKey+'\')" style="color:var(--danger);border-color:rgba(139,26,26,.3)">🔄 איפוס</button>'+
         '<span class="card-time" title="'+( s.lastActivity ? new Date(s.lastActivity).toLocaleString('he-IL') : '' )+'">'+ago(s.lastActivity)+'</span>'+
       '</div>'+
@@ -900,20 +998,37 @@ window.showConversation = function(sid, chId) {
   }
   if(!st) { showToast('תלמיד לא נמצא ('+sid+')'); return; }
   var s = (chId && st.chapters) ? (st.chapters[chId]||{}) : {};
-  var msgs = s.messages || [];
-  document.getElementById('convTitle').textContent = '💬 ' + esc(st.name||'תלמיד');
+  var attempts = s.attempts ? Object.values(s.attempts).sort(function(a,b){ return (a.archivedAt||0)-(b.archivedAt||0); }) : [];
+  var currentMsgs = s.messages || [];
+  document.getElementById('convTitle').textContent = '💬 ' + esc(st.name||'תלמיד') + (attempts.length ? ' (' + (attempts.length+1) + ' ניסיונות)' : '');
   var container = document.getElementById('convMessages');
   container.innerHTML = '';
-  if(!msgs.length) {
-    container.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:24px">אין הודעות עדיין</div>';
-  } else {
+
+  function renderMsgList(msgs, label, color) {
+    if(!msgs.length) return;
+    var sep = document.createElement('div');
+    sep.style.cssText = 'font-size:11px;font-weight:700;color:'+color+';padding:6px 10px;background:rgba(0,0,0,.05);border-radius:6px;margin:8px 0;letter-spacing:1px;direction:rtl;';
+    sep.textContent = label;
+    container.appendChild(sep);
     msgs.forEach(function(m) {
       var div = document.createElement('div');
       div.className = 'conv-msg ' + (m.role==='assistant'?'ai':'user');
-      var clean = (m.content||'').replace(/\[פסוק:\d+\]/g,'').replace(/\[סיום\]/g,'').replace(/\[בוחן\]/g,'').replace(/\[תשובות\][^\n]*/g,'').trim();
+      var clean = (m.content||'').replace(/\[פסוק:[\d\u05D0-\u05EA]+\]/g,'').replace(/\[סיום\]/g,'').replace(/\[בוחן\]/g,'').replace(/\[תשובות\][^\n]*/g,'').trim();
       div.innerHTML = '<div class="conv-role">'+(m.role==='assistant'?'🤖 מורה AI':'👤 '+esc(st.name||'תלמיד'))+'</div>' + escHtml(clean).replace(/\n/g,'<br>');
       container.appendChild(div);
     });
+  }
+
+  if(!currentMsgs.length && !attempts.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:24px">אין הודעות עדיין</div>';
+  } else {
+    attempts.forEach(function(att, i) {
+      var date = att.archivedAt ? new Date(att.archivedAt).toLocaleDateString('he-IL')+' '+new Date(att.archivedAt).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}) : '';
+      renderMsgList(att.messages||[], 'ניסיון '+(i+1)+' — '+date+(att.quizScore!=null?' | ציון: '+att.quizScore+'%':''), '#8b5a2b');
+    });
+    if(currentMsgs.length) {
+      renderMsgList(currentMsgs, attempts.length ? 'ניסיון נוכחי' : 'שיחה נוכחית', '#2d5a54');
+    }
     setTimeout(function(){ container.scrollTop = container.scrollHeight; }, 50);
   }
   document.getElementById('convModal').classList.add('open');
@@ -922,10 +1037,28 @@ window.showConversation = function(sid, chId) {
 window.resetStudentChapter = async function(sid, cid, studentName) {
   var ch = T.chapters[cid] || {};
   var chLabel = ch.title || ((ch.book||'') + (ch.chapter ? ' פרק '+ch.chapter : ''));
-  if(!confirm('איפוס פרק "'+chLabel+'" עבור '+studentName+'?\n\nכל ההתקדמות, השיחות והציונים יימחקו.')) return;
+  if(!confirm('איפוס פרק "'+chLabel+'" עבור '+studentName+'?\n\nההתקדמות תאופס אבל השיחות ישמרו בהיסטוריה.')) return;
   try {
-    await T.db.ref('classes/'+T.classCode+'/students/'+sid+'/chapters/'+cid).remove();
-    showToast('✓ הפרק אופס עבור '+studentName);
+    var st = T.students[sid];
+    var s  = (st&&st.chapters&&st.chapters[cid]) || {};
+    // Archive current attempt
+    if(s.messages&&s.messages.length) {
+      await T.db.ref('classes/'+T.classCode+'/students/'+sid+'/chapters/'+cid+'/attempts').push({
+        messages: s.messages.slice(-40),
+        progress: s.progress||0,
+        quizScore: s.quizScore||null,
+        questionsAnswered: s.questionsAnswered||0,
+        finished: s.finished||false,
+        archivedAt: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+    // Reset active session only
+    await T.db.ref('classes/'+T.classCode+'/students/'+sid+'/chapters/'+cid).update({
+      messages:[], progress:0, questionsAnswered:0, level:'basic',
+      topicsCovered:new Array(12).fill(false), finished:false, quizScore:null,
+      dontKnowCount:0, lastActivity:firebase.database.ServerValue.TIMESTAMP
+    });
+    showToast('✓ הפרק אופס — ההיסטוריה נשמרה');
   } catch(e) {
     showToast('שגיאה: '+e.message);
   }
@@ -1204,6 +1337,7 @@ window.openEditChapter = function(cid) {
   document.getElementById('formLiterary').value=ch.literary||'';
   document.getElementById('formVerseFrom').value=ch.verseFrom||'';
   document.getElementById('formVerseTo').value=ch.verseTo||'';
+  document.getElementById('formFolder').value=ch.folderId||'';
   document.getElementById('saveChapterBtn').textContent='💾 שמור שינויים';
   document.getElementById('chapterFormError').style.display='none';
   var f=document.getElementById('chapterForm');
@@ -1232,6 +1366,9 @@ window.saveChapter = async function() {
   var data={book:book,chapter:parseInt(chapter),
     title:title||(book+' פרק '+chapter),summary:summary,literary:literary||'',
     verseFrom:verseFrom, verseTo:verseTo,
+    folderId: document.getElementById('formFolder').value || null,
+    visible:  true,
+    order:    Date.now(),
     updatedAt:firebase.database.ServerValue.TIMESTAMP};
   try {
     if(cid) {
@@ -1404,9 +1541,371 @@ async function extractPPTX(file) {
 
 
 
+
+/* ============================================================
+   Folders
+   ============================================================ */
+T.folders = {};
+T.fListener = null;
+
+window.openAddFolder = function() {
+  document.getElementById('folderForm').style.display = 'block';
+  document.getElementById('folderNameInput').focus();
+};
+
+window.saveFolder = async function() {
+  var name  = document.getElementById('folderNameInput').value.trim();
+  var color = document.getElementById('folderColorInput').value;
+  if(!name) return;
+  await T.db.ref('classes/'+T.classCode+'/folders').push({ name:name, color:color, order:Date.now(), open:true });
+  document.getElementById('folderNameInput').value = '';
+  document.getElementById('folderForm').style.display = 'none';
+  showToast('✓ תיקייה נוצרה');
+};
+
+window.toggleFolder = function(fid) {
+  var body  = document.getElementById('fbody-'+fid);
+  var arrow = document.getElementById('farrow-'+fid);
+  var isOpen = body.classList.toggle('open');
+  arrow.classList.toggle('open', isOpen);
+  T.db.ref('classes/'+T.classCode+'/folders/'+fid).update({ open: isOpen });
+};
+
+window.deleteFolder = function(fid) {
+  var folder = T.folders[fid] || {};
+  if(!confirm('מחוק תיקייה "'+folder.name+'"? הפרקים לא יימחקו — רק ייצאו מהתיקייה.')) return;
+  // Remove folderId from all chapters in this folder
+  Object.keys(T.chapters).forEach(function(cid) {
+    if(T.chapters[cid].folderId === fid)
+      T.db.ref('classes/'+T.classCode+'/chapters/'+cid).update({ folderId: null });
+  });
+  T.db.ref('classes/'+T.classCode+'/folders/'+fid).remove();
+};
+
+window.moveChapterToFolder = function(cid, fid) {
+  T.db.ref('classes/'+T.classCode+'/chapters/'+cid).update({ folderId: fid||null });
+};
+
+window.toggleChapterVisible = function(cid) {
+  var ch = T.chapters[cid] || {};
+  T.db.ref('classes/'+T.classCode+'/chapters/'+cid).update({ visible: ch.visible === false ? true : false });
+  showToast(ch.visible === false ? '✓ פרק גלוי לתלמידים' : '✓ פרק מוסתר מתלמידים');
+};
+
+window.moveChapterOrder = function(cid, dir) {
+  // Simple order bump
+  var ch = T.chapters[cid] || {};
+  var newOrder = (ch.order||0) + dir * 10;
+  T.db.ref('classes/'+T.classCode+'/chapters/'+cid).update({ order: newOrder });
+};
+
+function updateFolderSelect() {
+  var sel = document.getElementById('formFolder');
+  if(!sel) return;
+  var current = sel.value;
+  sel.innerHTML = '<option value="">— ללא תיקייה —</option>';
+  Object.keys(T.folders).sort(function(a,b){ return (T.folders[a].order||0)-(T.folders[b].order||0); }).forEach(function(fid) {
+    var opt = document.createElement('option');
+    opt.value = fid; opt.textContent = T.folders[fid].name;
+    if(fid === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function renderChaptersList() {
+  var list = document.getElementById('chaptersList');
+  var chIds = Object.keys(T.chapters);
+  if(!chIds.length) { list.innerHTML='<div class="no-chapters">אין פרקים — הוסיפי את הראשון!</div>'; return; }
+
+  var folderIds = Object.keys(T.folders).sort(function(a,b){ return (T.folders[a].order||0)-(T.folders[b].order||0); });
+  var html = '';
+
+  // Chapters by folder
+  folderIds.forEach(function(fid) {
+    var folder = T.folders[fid];
+    var folderChs = chIds.filter(function(cid){ return T.chapters[cid].folderId === fid; })
+      .sort(function(a,b){ return (T.chapters[a].order||0)-(T.chapters[b].order||0); });
+    html += '<div class="folder-group">'
+      +'<div class="folder-header" onclick="window.toggleFolder(\''+fid+'\')">'
+      +'<span style="color:'+esc(folder.color||'#c49a22')+';font-size:18px">📁</span>'
+      +'<span class="folder-name">'+esc(folder.name)+'</span>'
+      +'<span style="font-size:11px;color:var(--text-light)">'+(folderChs.length)+' פרקים</span>'
+      +'<button onclick="event.stopPropagation();window.deleteFolder(\''+fid+'\')" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:13px;padding:0 4px;opacity:.6">🗑</button>'
+      +'<span class="folder-arrow '+(folder.open!==false?'open':'') +'" id="farrow-'+fid+'">▼</span>'
+      +'</div>'
+      +'<div class="folder-body '+(folder.open!==false?'open':'')+'" id="fbody-'+fid+'">';
+    if(!folderChs.length) html += '<div class="no-folder-chapters">אין פרקים — גרור פרקים לכאן</div>';
+    folderChs.forEach(function(cid) { html += buildChapterItem(cid, fid); });
+    html += '</div></div>';
+  });
+
+  // Chapters without folder
+  var orphans = chIds.filter(function(cid){ return !T.chapters[cid].folderId; })
+    .sort(function(a,b){ return (T.chapters[a].order||0)-(T.chapters[b].order||0); });
+  if(orphans.length) {
+    html += '<div style="margin-top:10px;font-size:12px;font-weight:600;color:var(--text-light);padding:6px 2px;">ללא תיקייה</div>';
+    orphans.forEach(function(cid) { html += buildChapterItem(cid, null); });
+  }
+
+  list.innerHTML = html;
+  updateFolderSelect();
+}
+
+function buildChapterItem(cid) {
+  var ch = T.chapters[cid];
+  var lbl = ch.title || ((ch.book||'?')+' פרק '+(ch.chapter||'?'));
+  var isHidden = ch.visible === false;
+  var folderOptions = '<option value="">— ללא תיקייה —</option>'
+    + Object.keys(T.folders).map(function(fi){
+        return '<option value="'+fi+'"'+(ch.folderId===fi?' selected':'')+'>'+esc(T.folders[fi].name)+'</option>';
+      }).join('');
+  // Store in map for safe onclick
+  var itemKey = 'ci_'+(++buildChapterItem._seq);
+  buildChapterItem._map[itemKey] = cid;
+  return '<div class="folder-chapter-item'+(isHidden?' hidden-ch':'')+'">'
+    +'<div class="folder-chapter-drag" title="גרור לסדר">⠿</div>'
+    +'<div class="folder-chapter-info" style="flex:1;min-width:0;">'
+    +'<div class="folder-chapter-title">'+esc(lbl)+'</div>'
+    +'<div class="folder-chapter-meta">'+esc(ch.book||'')+(ch.chapter?' · פרק '+ch.chapter:'')+(ch.verseFrom?' · פס׳ '+ch.verseFrom+'-'+(ch.verseTo||'סוף'):'')+' '+(isHidden?'🙈 מוסתר':'')+'</div>'
+    +'</div>'
+    +'<div class="folder-chapter-actions">'
+    +'<select style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border-gold);background:rgba(255,252,240,.9);direction:rtl;" onchange="window.moveCh(\''+itemKey+'\',this.value)">'
+    +folderOptions+'</select>'
+    +'<button class="vis-btn" onclick="window.visCh(\''+itemKey+'\')" title="'+(isHidden?'הצג':'הסתר')+'">'+(isHidden?'🙈':'👁')+'</button>'
+    +'<button onclick="window.orderCh(\''+itemKey+'\',-1)" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 3px;" title="הזז למעלה">▲</button>'
+    +'<button onclick="window.orderCh(\''+itemKey+'\',1)" style="background:none;border:none;cursor:pointer;font-size:13px;padding:0 3px;" title="הזז למטה">▼</button>'
+    +'<button class="btn-secondary" style="font-size:11px;padding:4px 8px" onclick="window.editCh(\''+itemKey+'\')">✏️</button>'
+    +'<button class="btn-danger" onclick="window.delCh(\''+itemKey+'\')" style="font-size:11px;padding:4px 7px">🗑</button>'
+    +'</div>'
+    +'</div>';
+}
+buildChapterItem._seq = 0;
+buildChapterItem._map = {};
+window.moveCh  = function(k,v){ var cid=buildChapterItem._map[k]; if(cid) window.moveChapterToFolder(cid,v); };
+window.visCh   = function(k)  { var cid=buildChapterItem._map[k]; if(cid) window.toggleChapterVisible(cid); };
+window.orderCh = function(k,d){ var cid=buildChapterItem._map[k]; if(cid) window.moveChapterOrder(cid,d); };
+window.editCh  = function(k)  { var cid=buildChapterItem._map[k]; if(cid) window.openEditChapter(cid); };
+window.delCh   = function(k)  { var cid=buildChapterItem._map[k]; if(cid) window.deleteChapter(cid); };
+
+/* ============================================================
+   Multi-class management
+   ============================================================ */
+function getMyClasses() {
+  try { return JSON.parse(localStorage.getItem('teacherClasses')||'[]'); } catch(e){ return []; }
+}
+function saveMyClasses(list) {
+  try { localStorage.setItem('teacherClasses', JSON.stringify(list)); } catch(e){}
+}
+
+function addToMyClasses(code, name) {
+  var list = getMyClasses();
+  if(!list.find(function(x){ return x.code===code; })) list.push({ code:code, name:name||code });
+  saveMyClasses(list);
+  renderClassSwitcher();
+}
+
+function renderClassSwitcher() {
+  var list = getMyClasses();
+  var switcher = document.getElementById('classSwitcher');
+  var sel = document.getElementById('classSwitcherSel');
+  if(list.length > 1) {
+    switcher.style.display = 'flex';
+    sel.innerHTML = list.map(function(x){
+      return '<option value="'+x.code+'"'+(x.code===T.classCode?' selected':'')+'>'+x.name+'</option>';
+    }).join('');
+  } else {
+    switcher.style.display = 'none';
+  }
+}
+
+window.switchClass = async function(code) {
+  if(code === T.classCode) return;
+  showScreen('loading');
+  if(T.sListener) T.db.ref('classes/'+T.classCode+'/students').off('value',T.sListener);
+  if(T.cListener) T.db.ref('classes/'+T.classCode+'/chapters').off('value',T.cListener);
+  if(T.fListener) T.db.ref('classes/'+T.classCode+'/folders').off('value',T.fListener);
+  try {
+    var snap = await T.db.ref('classes/'+code+'/settings').once('value');
+    var s = snap.val()||{};
+    T.classCode = code; T.settings = s;
+    T.roster = Array.isArray(s.roster) ? s.roster : [];
+    document.getElementById('topbarSub').textContent = 'כיתה: '+code.toUpperCase();
+    showScreen('main');
+    listenToData();
+    renderRoster();
+    renderClassSwitcher();
+  } catch(e) { showToast('שגיאה: '+e.message); showScreen('main'); }
+};
+
+window.openAddClass = function() {
+  document.getElementById('addClassModal').style.display = 'flex';
+  document.getElementById('addClassCode').value='';
+  document.getElementById('addClassPass').value='';
+  document.getElementById('addClassError').style.display='none';
+};
+
+window.doAddClass = async function() {
+  var code = document.getElementById('addClassCode').value.trim().replace(/[.#$\/\[\]]/g,'');
+  var pass = document.getElementById('addClassPass').value;
+  var err = document.getElementById('addClassError');
+  if(!code||!pass){err.textContent='אנא מלא את כל השדות';err.style.display='block';return;}
+  try {
+    var snap = await T.db.ref('classes/'+code+'/settings').once('value');
+    if(!snap.exists()) throw new Error('קוד כיתה לא נמצא');
+    var s = snap.val();
+    if(s.password!==pass) throw new Error('סיסמה שגויה');
+    addToMyClasses(code, s.teacherName ? s.teacherName+' ('+code+')' : code.toUpperCase());
+    document.getElementById('addClassModal').style.display='none';
+    showToast('✓ כיתה '+code.toUpperCase()+' נוספה!');
+  } catch(e) { err.textContent=e.message; err.style.display='block'; }
+};
+
+/* ============================================================
+   Score filter
+   ============================================================ */
+T.scoreFilter = 100;
+
+window.toggleScoreFilter = function() {
+  var row = document.getElementById('scoreFilterRow');
+  row.style.display = row.style.display==='none' ? 'flex' : 'none';
+};
+
+window.updateScoreFilter = function(val) {
+  T.scoreFilter = parseInt(val);
+  document.getElementById('scoreFilterVal').textContent = val >= 100 ? 'הכל' : 'פחות מ-'+val+'%';
+  renderDashboard();
+};
+
+window.resetScoreFilter = function() {
+  T.scoreFilter = 100;
+  document.getElementById('scoreFilterRange').value = 100;
+  document.getElementById('scoreFilterVal').textContent = 'הכל';
+  renderDashboard();
+};
+
+/* ============================================================
+   Time formatting
+   ============================================================ */
+function formatTime(seconds) {
+  if(!seconds || seconds < 60) return seconds ? seconds+'ש׳׳' : '—';
+  var m = Math.floor(seconds/60);
+  if(m < 60) return m + ' דק׳';
+  return Math.floor(m/60)+'ש׳'+' '+( m%60 ? (m%60)+'דק׳' : '');
+}
+
+/* ============================================================
+   Teacher Notes
+   ============================================================ */
+var NOTE_BANK_POSITIVE = [
+  'עבודה מצוינת! ','כל הכבוד על ההתמדה! ','תשובות מעמיקות מאוד ','ניכר שהכנסת מאמץ ','שאלות נהדרות ','הבנה מרשימה של החומר ','גישה יצירתית לטקסט ',
+];
+var NOTE_BANK_NEGATIVE = [
+  'כדאי לחזור על הפרק לפני הבגרות ','נסה לענות בשלמות יותר ','שים לב לפסוקים שדילגת עליהם ','כדאי להשתמש בציטוטים מהטקסט ','אל תהסס ללחוץ על "רמז" ','נסה פעם נוספת — אתה יכול! ',
+];
+
+var _noteTarget = null; // { sid, name }
+
+window.noteClick = function(key) {
+  var d = buildStudentCard._map[key];
+  if(!d) return;
+  _noteTarget = d;
+  document.getElementById('noteStudentName').textContent = 'התלמיד: '+esc(d.name);
+  document.getElementById('noteCustomText').value = '';
+
+  // Build bank chips using index to avoid quote issues
+  window._noteBankMap = {};
+  NOTE_BANK_POSITIVE.forEach(function(n,i){ window._noteBankMap['p'+i]=n; });
+  NOTE_BANK_NEGATIVE.forEach(function(n,i){ window._noteBankMap['n'+i]=n; });
+  var posEl = document.getElementById('positiveBankChips');
+  var negEl = document.getElementById('negativeBankChips');
+  posEl.innerHTML = NOTE_BANK_POSITIVE.map(function(n,i){
+    return '<div class="note-chip positive" onclick="window.appendNote(\'p'+i+'\')" >'+esc(n)+'</div>';
+  }).join('');
+  negEl.innerHTML = NOTE_BANK_NEGATIVE.map(function(n,i){
+    return '<div class="note-chip negative" onclick="window.appendNote(\'n'+i+'\')" >'+esc(n)+'</div>';
+  }).join('');
+
+  document.getElementById('noteModal').classList.add('open');
+};
+
+window.appendNote = function(key) {
+  var text = window._noteBankMap && window._noteBankMap[key] ? window._noteBankMap[key] : key;
+  var ta = document.getElementById('noteCustomText');
+  ta.value = (ta.value ? ta.value + ' ' : '') + text.trim();
+  ta.focus();
+};
+
+window.closeNoteModal = function() {
+  document.getElementById('noteModal').classList.remove('open');
+  _noteTarget = null;
+};
+
+window.sendNote = async function() {
+  if(!_noteTarget) return;
+  var text = document.getElementById('noteCustomText').value.trim();
+  if(!text) { showToast('אנא כתוב הערה לפני השליחה'); return; }
+  try {
+    await T.db.ref('classes/'+T.classCode+'/students/'+_noteTarget.sid+'/teacherNote').set({
+      text: text,
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    });
+    showToast('✓ ההערה נשלחה ל'+_noteTarget.name);
+    window.closeNoteModal();
+  } catch(e) { showToast('שגיאה: '+e.message); }
+};
+
+
 window.addEventListener('DOMContentLoaded',async function(){
   await initFirebase();showScreen('login');
 });
 </script>
+
+<!-- Note Modal -->
+<div class="note-modal-overlay" id="noteModal">
+  <div class="note-modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Frank Ruhl Libre',serif;font-size:18px;color:var(--brown-deep);">📝 הערה לתלמיד</div>
+      <button onclick="window.closeNoteModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-light);">✕</button>
+    </div>
+    <div id="noteStudentName" style="font-size:13px;color:var(--text-medium);margin-bottom:14px;"></div>
+    <div class="note-bank-section">
+      <div class="note-bank-title">✨ הערות חיוביות מוכנות</div>
+      <div class="note-bank-chips" id="positiveBankChips"></div>
+    </div>
+    <div class="note-bank-section">
+      <div class="note-bank-title">⚠️ הערות לשיפור מוכנות</div>
+      <div class="note-bank-chips" id="negativeBankChips"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>הערה אישית (אופציונלי)</label>
+      <textarea class="note-textarea" id="noteCustomText" placeholder="כתוב הערה אישית לתלמיד..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn-secondary" onclick="window.closeNoteModal()">ביטול</button>
+      <button class="btn-primary" onclick="window.sendNote()">📨 שלח הערה</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Class Modal -->
+<div id="addClassModal" style="display:none;position:fixed;inset:0;background:rgba(30,12,2,.75);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:linear-gradient(160deg,#fffbee,#f5e8c4);border:2px solid var(--border-gold);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:400px;direction:rtl;">
+    <div style="font-size:18px;font-family:'Frank Ruhl Libre',serif;color:var(--brown-deep);margin-bottom:16px;">+ הוסף כיתה נוספת</div>
+    <div class="form-group">
+      <label>קוד כיתה</label>
+      <input type="text" id="addClassCode" placeholder="קוד הכיתה">
+    </div>
+    <div class="form-group">
+      <label>סיסמה</label>
+      <input type="password" id="addClassPass" placeholder="סיסמת הכיתה">
+    </div>
+    <div class="error-msg" id="addClassError"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+      <button class="btn-secondary" onclick="document.getElementById('addClassModal').style.display='none'">ביטול</button>
+      <button class="btn-primary" onclick="window.doAddClass()">הוסף</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
