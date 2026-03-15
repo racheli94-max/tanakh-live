@@ -1,387 +1,1302 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html dir="rtl" lang="he">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>לוח מורה — Tanakh-Live</title>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&family=Frank+Ruhl+Libre:wght@400;700;900&display=swap" rel="stylesheet">
-<script>
-function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
-window._fr=(async()=>{
-  await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-  await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js');
-})();
-</script>
+<title>לוח המורה — תנ"ך</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Heebo',sans-serif;background:#f5ede0;direction:rtl;min-height:100vh;}
-input{font-family:'Heebo',sans-serif;direction:rtl;}
-input:focus{outline:none!important;border-color:#c4956a!important;box-shadow:0 0 0 2px rgba(180,120,60,.18)!important;}
-.btn{transition:all .16s;cursor:pointer;font-family:'Heebo',sans-serif;border:none;}
-.btn:hover:not(:disabled){opacity:.83;transform:translateY(-1px);}
-.btn:disabled{opacity:.35;cursor:not-allowed;}
-@keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-.fade{animation:fi .3s ease;}
-.card{transition:box-shadow .18s,transform .18s;}
-.card:hover{box-shadow:0 5px 20px rgba(100,60,20,.12);transform:translateY(-2px);}
-.sroll{height:10px;background:#c4956a;border-radius:5px;opacity:.6;}
-.tab{cursor:pointer;padding:9px 18px;font-size:13px;font-family:'Heebo',sans-serif;border:none;border-bottom:2.5px solid transparent;background:transparent;color:#a08060;font-weight:400;transition:all .15s;}
-.tab.active{color:#8b5e3c;border-bottom-color:#8b5e3c;font-weight:700;}
+:root {
+  --parchment:#f7f0e0;--brown-deep:#4a2008;--brown-primary:#7b3b0a;--brown-medium:#a0522d;
+  --gold-deep:#9a6e10;--gold:#c49a22;--gold-light:#e8c870;--gold-faint:#f3e4b0;
+  --text-dark:#2c1508;--text-medium:#5c3010;--text-light:#8b5a2b;
+  --border:rgba(139,69,19,0.28);--border-gold:rgba(196,154,34,0.45);
+  --shadow-warm:rgba(60,30,10,0.12);--success:#4a7c3a;--danger:#8b1a1a;
+  --danger-bg:rgba(139,26,26,0.10);--radius:10px;--radius-lg:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Heebo',sans-serif;background:var(--parchment);
+  background-image:radial-gradient(ellipse 80% 60% at 15% 10%,rgba(196,154,34,.10) 0%,transparent 60%),
+  radial-gradient(ellipse 60% 80% at 85% 90%,rgba(139,69,19,.08) 0%,transparent 60%);
+  color:var(--text-dark);direction:rtl;min-height:100vh;}
+h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--brown-primary);margin-bottom:6px;}
+.form-group input,.form-group textarea,.form-group select{
+  width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius);
+  background:rgba(255,252,240,.85);font-family:'Heebo',sans-serif;font-size:14px;
+  color:var(--text-dark);direction:rtl;outline:none;transition:border-color .2s,box-shadow .2s;}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{
+  border-color:var(--gold);box-shadow:0 0 0 3px rgba(196,154,34,.15);}
+.form-group textarea{resize:vertical;min-height:100px;line-height:1.6;}
+.btn-primary{padding:10px 22px;background:linear-gradient(135deg,var(--brown-primary),var(--brown-deep));
+  color:var(--gold-light);border:none;border-radius:var(--radius);
+  font-family:'Frank Ruhl Libre',serif;font-size:15px;font-weight:700;cursor:pointer;
+  transition:all .2s;box-shadow:0 4px 14px rgba(60,20,0,.24);}
+.btn-primary:hover{transform:translateY(-1px);}
+.btn-secondary{padding:8px 16px;background:rgba(255,252,240,.8);color:var(--brown-primary);
+  border:1.5px solid var(--border-gold);border-radius:var(--radius);
+  font-family:'Heebo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-secondary:hover{background:var(--gold-faint);border-color:var(--gold);}
+.btn-danger{padding:7px 13px;background:rgba(139,26,26,.1);color:var(--danger);
+  border:1.5px solid rgba(139,26,26,.35);border-radius:var(--radius);
+  font-family:'Heebo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-danger:hover{background:rgba(139,26,26,.18);}
+.error-msg{background:var(--danger-bg);border:1px solid rgba(139,26,26,.3);
+  border-radius:8px;color:var(--danger);font-size:13px;padding:9px 13px;margin-top:10px;display:none;}
+.ornament{text-align:center;color:var(--gold);font-size:13px;letter-spacing:6px;opacity:.6;padding:4px 0;}
+.divider{border:none;border-top:1px solid var(--border-gold);margin:16px 0;}
+
+/* Login */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-box{background:linear-gradient(160deg,rgba(255,252,240,.95) 0%,rgba(240,228,196,.92) 100%);
+  border:2px solid var(--border-gold);border-radius:var(--radius-lg);
+  padding:44px 40px 36px;width:100%;max-width:420px;
+  box-shadow:0 8px 40px var(--shadow-warm);text-align:center;}
+.login-emblem{font-size:48px;margin-bottom:8px;}
+.login-title{font-size:26px;font-weight:700;color:var(--brown-deep);margin-bottom:4px;}
+.login-subtitle{font-size:13px;color:var(--text-light);margin-bottom:28px;}
+
+/* Loading */
+#loadingScreen{min-height:100vh;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;}
+.spinner{width:44px;height:44px;border:4px solid var(--border-gold);
+  border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Main */
+#mainScreen{display:none;flex-direction:column;min-height:100vh;}
+.topbar{background:linear-gradient(90deg,var(--brown-deep),var(--brown-primary) 60%,var(--brown-medium));
+  padding:12px 24px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid var(--gold-deep);box-shadow:0 2px 12px rgba(40,15,0,.3);flex-wrap:wrap;gap:10px;}
+.topbar-logo{font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--gold-light);font-weight:700;}
+.topbar-sub{font-size:12px;color:rgba(232,200,112,.75);}
+.live-dot{width:8px;height:8px;background:#7adf70;border-radius:50%;
+  box-shadow:0 0 6px rgba(122,223,112,.6);animation:pulse 2s ease infinite;display:inline-block;margin-left:6px;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.topbar-btn{padding:6px 14px;background:rgba(255,252,240,.12);color:var(--gold-light);
+  border:1px solid rgba(232,200,112,.3);border-radius:8px;font-size:13px;cursor:pointer;transition:all .2s;}
+.topbar-btn:hover{background:rgba(255,252,240,.22);}
+
+/* Tabs */
+.tab-bar{display:flex;border-bottom:2px solid var(--border-gold);background:rgba(255,252,240,.5);}
+.tab-btn{padding:13px 26px;font-family:'Frank Ruhl Libre',serif;font-size:15px;font-weight:700;
+  color:var(--text-light);border:none;background:transparent;cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;}
+.tab-btn.active{color:var(--brown-primary);border-bottom-color:var(--gold);}
+.tab-btn:hover:not(.active){color:var(--brown-primary);background:rgba(196,154,34,.06);}
+
+.tab-content{padding:24px;max-width:1200px;margin:0 auto;width:100%;}
+
+/* Chapter daily summary */
+.ch-summary-panel{margin-bottom:20px;}
+.ch-summary-toggle{display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(135deg,var(--brown-primary),var(--brown-deep));
+  color:var(--gold-light);border:none;width:100%;padding:12px 18px;border-radius:var(--radius);
+  font-family:'Frank Ruhl Libre',serif;font-size:15px;font-weight:700;cursor:pointer;
+  box-shadow:0 2px 10px rgba(40,15,0,.2);transition:opacity .2s;}
+.ch-summary-toggle:hover{opacity:.9;}
+.ch-summary-body{display:none;margin-top:10px;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.ch-summary-body.open{display:grid;animation:fadeIn .2s ease;}
+.ch-stat-card{background:linear-gradient(160deg,rgba(255,252,240,.97),rgba(244,232,204,.9));
+  border:1.5px solid var(--border-gold);border-radius:var(--radius);padding:16px 18px;
+  box-shadow:0 2px 10px var(--shadow-warm);}
+.ch-stat-title{font-family:'Frank Ruhl Libre',serif;font-size:15px;color:var(--brown-deep);
+  font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-gold);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ch-stat-row{display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;color:var(--text-medium);padding:3px 0;}
+.ch-stat-val{font-weight:700;color:var(--brown-primary);font-size:13px;}
+.ch-mini-bar{height:4px;background:rgba(196,154,34,.15);border-radius:4px;margin-top:8px;overflow:hidden;}
+.ch-mini-bar-inner{height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-light));
+  border-radius:4px;transition:width .4s;}
+
+/* Section */
+.section-card{background:linear-gradient(160deg,rgba(255,252,240,.95),rgba(244,232,204,.88));
+  border:1.5px solid var(--border-gold);border-radius:var(--radius-lg);
+  padding:24px;margin-bottom:20px;box-shadow:0 3px 18px var(--shadow-warm);}
+.section-title{font-family:'Frank Ruhl Libre',serif;font-size:19px;color:var(--brown-primary);
+  margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+
+/* Chapters list */
+.chapters-list{display:flex;flex-direction:column;gap:12px;margin-bottom:18px;}
+.chapter-card-item{background:rgba(255,252,240,.7);border:1.5px solid var(--border-gold);
+  border-radius:var(--radius);padding:16px 18px;
+  display:flex;align-items:flex-start;gap:14px;transition:box-shadow .2s;}
+.chapter-card-item:hover{box-shadow:0 2px 10px var(--shadow-warm);}
+.chapter-num-badge{width:36px;height:36px;background:linear-gradient(135deg,var(--gold-deep),var(--gold));
+  color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:'Frank Ruhl Libre',serif;font-size:16px;font-weight:700;flex-shrink:0;margin-top:2px;}
+.chapter-item-info{flex:1;min-width:0;}
+.chapter-item-title{font-family:'Frank Ruhl Libre',serif;font-size:16px;color:var(--brown-deep);font-weight:700;}
+.chapter-item-meta{font-size:12px;color:var(--text-light);margin-top:3px;}
+.chapter-item-preview{font-size:13px;color:var(--text-medium);margin-top:6px;line-height:1.5;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.chapter-item-actions{display:flex;gap:6px;flex-shrink:0;align-items:flex-start;}
+.no-chapters{text-align:center;padding:28px;color:var(--text-light);font-size:14px;
+  border:2px dashed var(--border-gold);border-radius:var(--radius);font-style:italic;}
+
+/* Add/Edit form */
+.chapter-form{background:rgba(196,154,34,.06);border:1.5px solid var(--border-gold);
+  border-radius:var(--radius);padding:20px;margin-top:14px;display:none;}
+.chapter-form.open{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.book-ch-row{display:grid;grid-template-columns:2fr 1fr;gap:12px;}
+.form-actions{display:flex;gap:10px;margin-top:4px;}
+
+/* Stats */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.stat-card{background:linear-gradient(160deg,rgba(255,252,240,.9),rgba(240,228,196,.85));
+  border:1.5px solid var(--border-gold);border-radius:var(--radius);
+  padding:16px;text-align:center;box-shadow:0 2px 12px var(--shadow-warm);}
+.stat-num{font-family:'Frank Ruhl Libre',serif;font-size:30px;font-weight:700;color:var(--brown-primary);line-height:1;}
+.stat-lbl{font-size:12px;color:var(--text-light);margin-top:4px;}
+
+/* Filter */
+.filter-bar{display:flex;gap:8px;margin-bottom:18px;align-items:center;flex-wrap:wrap;}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:rgba(255,252,240,.7);font-size:12px;color:var(--text-medium);cursor:pointer;transition:all .2s;}
+.filter-btn.active{background:var(--brown-primary);color:var(--gold-light);border-color:var(--brown-primary);}
+.filter-btn:hover:not(.active){background:var(--gold-faint);border-color:var(--gold);}
+.ch-filter-select{padding:6px 12px;border:1.5px solid var(--border-gold);border-radius:20px;
+  background:rgba(255,252,240,.8);font-family:'Heebo',sans-serif;font-size:12px;
+  color:var(--text-dark);direction:rtl;outline:none;cursor:pointer;}
+
+/* Student grid */
+.students-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
+.student-card{background:linear-gradient(160deg,rgba(255,252,240,.95),rgba(244,232,204,.9));
+  border:1.5px solid var(--border-gold);border-radius:var(--radius-lg);
+  padding:16px;box-shadow:0 3px 14px var(--shadow-warm);
+  transition:all .3s;position:relative;animation:cardIn .35s ease;}
+@keyframes cardIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.student-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(60,30,10,.16);}
+.student-card.needs-help{border-color:rgba(180,60,60,.5);
+  box-shadow:0 3px 14px rgba(150,40,40,.15),0 0 0 2px rgba(180,60,60,.15);}
+.alert-tag{position:absolute;top:-1px;right:14px;
+  background:linear-gradient(135deg,#b03030,#8b1a1a);color:#ffe0e0;
+  font-size:10px;font-weight:700;padding:3px 10px;border-radius:0 0 8px 8px;}
+.finished-tag{position:absolute;top:-1px;right:14px;
+  background:linear-gradient(135deg,#3a7c2a,#2a5a1a);color:#d0ffc8;
+  font-size:10px;font-weight:700;padding:3px 10px;border-radius:0 0 8px 8px;}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+.s-name{font-family:'Frank Ruhl Libre',serif;font-size:17px;color:var(--brown-deep);font-weight:700;}
+.lvl-badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid;}
+.lvl-basic{background:rgba(74,124,58,.15);color:#3a7c2a;border-color:rgba(74,124,58,.4);}
+.lvl-intermediate{background:rgba(196,154,34,.15);color:var(--gold-deep);border-color:rgba(196,154,34,.4);}
+.lvl-advanced{background:rgba(139,69,19,.15);color:var(--brown-medium);border-color:rgba(139,69,19,.4);}
+.ch-tag{font-size:11px;color:var(--text-light);margin-bottom:8px;
+  background:rgba(196,154,34,.1);padding:2px 8px;border-radius:4px;display:inline-block;}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.prog-pct{font-size:13px;font-weight:700;color:var(--brown-primary);}
+.prog-q{font-size:11px;color:var(--text-light);}
+.prog-outer{width:100%;height:6px;background:rgba(196,154,34,.15);border-radius:10px;overflow:hidden;margin-bottom:9px;}
+.prog-inner{height:100%;border-radius:10px;transition:width .5s;background:linear-gradient(90deg,var(--gold-deep),var(--gold-light));}
+.topics-row{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:9px;}
+.tsq{width:14px;height:14px;border-radius:3px;border:1px solid rgba(196,154,34,.3);
+  background:rgba(255,252,240,.5);transition:all .4s;}
+.tsq.on{background:linear-gradient(135deg,var(--gold),var(--gold-deep));border-color:var(--gold-deep);}
+.card-footer{display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);}
+.card-time{font-size:11px;color:var(--text-light);}
+.empty-state{text-align:center;padding:50px 20px;
+  font-family:'Frank Ruhl Libre',serif;font-size:18px;color:var(--text-light);grid-column:1/-1;}
+.empty-icon{font-size:44px;margin-bottom:14px;}
+
+/* Toast */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--brown-deep);color:var(--gold-faint);padding:11px 22px;
+  border-radius:var(--radius);font-size:13.5px;font-weight:500;
+  box-shadow:0 4px 20px rgba(30,10,0,.35);transition:transform .3s;z-index:300;}
+.toast.visible{transform:translateX(-50%) translateY(0);}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,12,2,.72);
+  align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;}
+.modal-box{background:linear-gradient(160deg,#fff8e8,#f0e0b8);
+  border:1.5px solid var(--border-gold);border-radius:var(--radius-lg);
+  padding:30px;max-width:420px;width:90%;text-align:center;
+  box-shadow:0 14px 50px rgba(40,15,0,.35);}
+.modal-title{font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-deep);margin-bottom:10px;}
+.modal-text{font-size:14px;color:var(--text-medium);margin-bottom:20px;line-height:1.6;}
+.modal-actions{display:flex;gap:10px;justify-content:center;}
+.modal-cancel{padding:9px 20px;border-radius:8px;border:1.5px solid var(--border);
+  background:rgba(255,252,240,.7);font-size:14px;color:var(--text-medium);cursor:pointer;}
+.modal-cancel:hover{background:var(--gold-faint);}
+
+.upload-zone{border:2px dashed var(--border-gold);border-radius:var(--radius);
+  padding:22px 16px;text-align:center;cursor:pointer;transition:all .2s;
+  background:rgba(255,252,240,.5);}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--gold);background:var(--gold-faint);}
+.upload-icon{font-size:28px;margin-bottom:6px;}
+.upload-text{font-size:14px;color:var(--brown-primary);font-weight:600;}
+.upload-sub{font-size:12px;color:var(--text-light);margin-top:3px;}
+.upload-status{margin-top:10px;padding:9px 13px;border-radius:8px;font-size:13px;font-weight:500;}
+.upload-status.loading{background:rgba(196,154,34,.1);color:var(--gold-deep);border:1px solid rgba(196,154,34,.3);}
+.upload-status.ok{background:rgba(74,124,58,.1);color:var(--success);border:1px solid rgba(74,124,58,.3);}
+.upload-status.err{background:rgba(139,26,26,.1);color:var(--danger);border:1px solid rgba(139,26,26,.3);}
+@media(max-width:700px){
+  .stats-bar{grid-template-columns:repeat(2,1fr);}
+  .book-ch-row{grid-template-columns:1fr;}
+  .tab-btn{padding:11px 14px;font-size:13px;}
+}
+
+/* Conversation modal */
+#convModal{display:none;position:fixed;inset:0;background:rgba(30,12,2,.75);
+  align-items:flex-start;justify-content:center;z-index:300;padding:24px 16px;overflow-y:auto;}
+#convModal.open{display:flex;}
+.conv-box{background:linear-gradient(160deg,#fff8e8,#f5e8c8);border:2px solid var(--border-gold);
+  border-radius:var(--radius-lg);padding:28px 28px 24px;width:100%;max-width:580px;
+  box-shadow:0 20px 60px rgba(40,15,0,.4);margin:auto;}
+.conv-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.conv-title{font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-deep);}
+.conv-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);
+  padding:4px 8px;border-radius:6px;transition:background .2s;}
+.conv-close:hover{background:var(--gold-faint);}
+.conv-messages{max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+  padding:4px 2px;}
+.conv-msg{padding:10px 14px;border-radius:10px;font-size:13.5px;line-height:1.6;direction:rtl;}
+.conv-msg.ai{background:rgba(196,154,34,.12);border:1px solid var(--border-gold);
+  color:var(--brown-deep);border-radius:10px 10px 10px 2px;}
+.conv-msg.user{background:rgba(255,252,240,.9);border:1px solid var(--border);
+  color:var(--text-dark);text-align:right;border-radius:10px 10px 2px 10px;margin-right:20px;}
+.conv-msg .conv-role{font-size:11px;font-weight:700;margin-bottom:4px;opacity:.7;}
+.conv-btn{padding:4px 10px;font-size:11px;background:rgba(196,154,34,.12);
+  border:1px solid var(--border-gold);border-radius:6px;cursor:pointer;
+  color:var(--brown-primary);font-family:'Heebo',sans-serif;white-space:nowrap;transition:all .2s;}
+.conv-btn:hover{background:var(--gold-faint);}
+/* Roster */
+.roster-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:280px;overflow-y:auto;}
+.roster-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+  background:rgba(255,252,240,.8);border:1px solid var(--border-gold);border-radius:8px;font-size:14px;}
+.roster-item-name{color:var(--text-dark);font-weight:500;}
+.roster-del{background:none;border:none;cursor:pointer;color:var(--danger);font-size:16px;
+  padding:0 4px;opacity:.6;transition:opacity .15s;}
+.roster-del:hover{opacity:1;}
+.roster-empty{text-align:center;padding:18px;color:var(--text-light);font-size:13px;
+  border:2px dashed var(--border-gold);border-radius:8px;}
+.roster-add-row{display:flex;gap:8px;margin-top:8px;}
+.roster-add-row input{flex:1;padding:9px 12px;border:1.5px solid var(--border-gold);
+  border-radius:var(--radius);font-family:'Heebo',sans-serif;font-size:14px;
+  background:rgba(255,252,240,.8);direction:rtl;outline:none;}
+.roster-add-row input:focus{border-color:var(--gold);}
 </style>
 </head>
 <body>
-<div id="app"></div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-emblem">🏫</div>
+    <h1 class="login-title">לוח המורה</h1>
+    <p class="login-subtitle">כניסה לממשק הניהול</p>
+    <div class="ornament">✦ ✦ ✦</div>
+    <div class="divider"></div>
+    <div class="form-group">
+      <label>קוד כיתה</label>
+      <input type="text" id="loginCode" placeholder="קוד הכיתה"
+        onkeydown="if(event.key==='Enter') window.doTeacherLogin()"
+        oninput="document.getElementById('loginError').style.display='none'">
+    </div>
+    <div class="form-group">
+      <label>סיסמה</label>
+      <input type="password" id="loginPass" placeholder="סיסמת המורה"
+        onkeydown="if(event.key==='Enter') window.doTeacherLogin()"
+        oninput="document.getElementById('loginError').style.display='none'">
+    </div>
+    <button class="btn-primary" style="width:100%;margin-top:4px" onclick="window.doTeacherLogin()">כניסה</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <p style="font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-primary)">מתחבר...</p>
+</div>
+
+<!-- MAIN -->
+<div id="mainScreen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">📜 לוח המורה — תנ"ך</div>
+      <div class="topbar-sub" id="topbarSub"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="live-dot"></span>
+      <span style="font-size:12px;color:rgba(232,200,112,.7)">זמן אמת</span>
+    </div>
+    <button class="topbar-btn" onclick="window.doLogout()">יציאה</button>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-dashboard" onclick="window.switchTab('dashboard')">📊 לוח תלמידים</button>
+    <button class="tab-btn" id="tab-chapters"  onclick="window.switchTab('chapters')">📚 ניהול פרקים</button>
+    <button class="tab-btn" id="tab-students"  onclick="window.switchTab('students')">👥 תלמידים מורשים</button>
+    <button class="tab-btn" id="tab-settings"  onclick="window.switchTab('settings')">⚙️ הגדרות</button>
+  </div>
+
+  <!-- DASHBOARD TAB -->
+  <div id="pane-dashboard" class="tab-content">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">תלמידים</div></div>
+      <div class="stat-card"><div class="stat-num" id="statActive" style="color:var(--gold-deep)">0</div><div class="stat-lbl">פעילים</div></div>
+      <div class="stat-card"><div class="stat-num" id="statFinished" style="color:var(--success)">0</div><div class="stat-lbl">סיימו פרק</div></div>
+      <div class="stat-card"><div class="stat-num" id="statHelp" style="color:var(--danger)">0</div><div class="stat-lbl">צריכים עזרה</div></div>
+    </div>
+    <div class="ch-summary-panel" id="chSummaryPanel">
+      <button class="ch-summary-toggle" onclick="window.toggleChSummary()">
+        <span>📊 סיכום יומי לפי פרק</span>
+        <span id="chSummaryArrow">▼</span>
+      </button>
+      <div class="ch-summary-body" id="chSummaryBody"></div>
+    </div>
+
+    <div class="filter-bar">
+      <span style="font-size:13px;color:var(--text-medium);font-weight:600">סנן:</span>
+      <button class="filter-btn active" id="filter-all"      onclick="window.setFilter('all')">הכל</button>
+      <button class="filter-btn"        id="filter-active"   onclick="window.setFilter('active')">פעילים</button>
+      <button class="filter-btn"        id="filter-finished" onclick="window.setFilter('finished')">סיימו</button>
+      <button class="filter-btn"        id="filter-help"     onclick="window.setFilter('help')">צריכים עזרה</button>
+      <select class="ch-filter-select" id="chapterFilterSel" onchange="window.setChFilter(this.value)">
+        <option value="all">כל הפרקים</option>
+      </select>
+      <div style="margin-right:auto;display:flex;gap:8px;">
+        <button class="btn-secondary" onclick="window.exportCSV()" title="ייצוא נתונים ל-Excel">📥 ייצוא CSV</button>
+        <button class="btn-secondary" onclick="window.generateLessonSummary()" id="summaryBtn" title="סיכום שיעור אוטומטי">🤖 סיכום שיעור</button>
+      </div>
+    </div>
+    <div class="students-grid" id="studentsGrid">
+      <div class="empty-state"><div class="empty-icon">⏳</div><div>ממתין לתלמידים...</div></div>
+    </div>
+  </div>
+
+  <!-- CHAPTERS TAB -->
+  <div id="pane-chapters" class="tab-content" style="display:none">
+    <div class="section-card">
+      <div class="section-title">📚 פרקים שהוגדרו לכיתה</div>
+      <div class="chapters-list" id="chaptersList">
+        <div class="no-chapters">טוען...</div>
+      </div>
+      <button class="btn-primary" onclick="window.openAddChapter()">+ הוסף פרק חדש</button>
+
+      <div class="chapter-form" id="chapterForm">
+        <input type="hidden" id="editChapterId">
+        <div class="book-ch-row">
+          <div class="form-group" style="margin-bottom:12px">
+            <label>ספר</label>
+            <select id="formBook">
+              <option value="">— בחר ספר —</option>
+              <option>בראשית</option><option>שמות</option><option>ויקרא</option>
+              <option>במדבר</option><option>דברים</option><option>יהושע</option>
+              <option>שופטים</option><option>שמואל א</option><option>שמואל ב</option>
+              <option>מלכים א</option><option>מלכים ב</option><option>ישעיהו</option>
+              <option>ירמיהו</option><option>יחזקאל</option><option>הושע</option>
+              <option>יואל</option><option>עמוס</option><option>עובדיה</option>
+              <option>יונה</option><option>מיכה</option><option>נחום</option>
+              <option>חבקוק</option><option>צפניה</option><option>חגי</option>
+              <option>זכריה</option><option>מלאכי</option>
+              <option>תהילים</option><option>משלי</option><option>איוב</option>
+              <option>שיר השירים</option><option>רות</option><option>איכה</option>
+              <option>קהלת</option><option>אסתר</option><option>דניאל</option>
+              <option>עזרא</option><option>נחמיה</option>
+              <option>דברי הימים א</option><option>דברי הימים ב</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>פרק</label>
+            <select id="formChapter">
+              <option value="">— בחר —</option>
+              <option value="1">א (1)</option>
+              <option value="2">ב (2)</option>
+              <option value="3">ג (3)</option>
+              <option value="4">ד (4)</option>
+              <option value="5">ה (5)</option>
+              <option value="6">ו (6)</option>
+              <option value="7">ז (7)</option>
+              <option value="8">ח (8)</option>
+              <option value="9">ט (9)</option>
+              <option value="10">י (10)</option>
+              <option value="11">יא (11)</option>
+              <option value="12">יב (12)</option>
+              <option value="13">יג (13)</option>
+              <option value="14">יד (14)</option>
+              <option value="15">טו (15)</option>
+              <option value="16">טז (16)</option>
+              <option value="17">יז (17)</option>
+              <option value="18">יח (18)</option>
+              <option value="19">יט (19)</option>
+              <option value="20">כ (20)</option>
+              <option value="21">כא (21)</option>
+              <option value="22">כב (22)</option>
+              <option value="23">כג (23)</option>
+              <option value="24">כד (24)</option>
+              <option value="25">כה (25)</option>
+              <option value="26">כו (26)</option>
+              <option value="27">כז (27)</option>
+              <option value="28">כח (28)</option>
+              <option value="29">כט (29)</option>
+              <option value="30">ל (30)</option>
+              <option value="31">לא (31)</option>
+              <option value="32">לב (32)</option>
+              <option value="33">לג (33)</option>
+              <option value="34">לד (34)</option>
+              <option value="35">לה (35)</option>
+              <option value="36">לו (36)</option>
+              <option value="37">לז (37)</option>
+              <option value="38">לח (38)</option>
+              <option value="39">לט (39)</option>
+              <option value="40">מ (40)</option>
+              <option value="41">מא (41)</option>
+              <option value="42">מב (42)</option>
+              <option value="43">מג (43)</option>
+              <option value="44">מד (44)</option>
+              <option value="45">מה (45)</option>
+              <option value="46">מו (46)</option>
+              <option value="47">מז (47)</option>
+              <option value="48">מח (48)</option>
+              <option value="49">מט (49)</option>
+              <option value="50">נ (50)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>כותרת מותאמת (אופציונלי)</label>
+          <input type="text" id="formTitle" placeholder='למשל: "יוסף ואחיו"'>
+        </div>
+        <div class="form-group">
+          <label>העלאת קובץ (PDF / Word / מצגת) — הטקסט ייקרא אוטומטית</label>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+               ondragover="event.preventDefault();this.classList.add('drag-over')"
+               ondragleave="this.classList.remove('drag-over')"
+               ondrop="event.preventDefault();this.classList.remove('drag-over');window.handleFileDrop(event)">
+            <div class="upload-icon">📎</div>
+            <div class="upload-text">לחץ להעלאה או גרור לכאן</div>
+            <div class="upload-sub">PDF · Word (.docx) · מצגת (.pptx)</div>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.pptx"
+                   style="display:none" onchange="window.handleFileSelect(this)">
+          </div>
+          <div class="upload-status" id="uploadStatus" style="display:none"></div>
+        </div>
+        <div class="form-group">
+          <label>סיכום הפרק — אירועים, דמויות, מוסר השכל</label>
+          <textarea id="formSummary" rows="7"
+            placeholder="הכנס כאן את סיכום הפרק — מה קורה בכל פסוק, דמויות מרכזיות, מוסר השכל...&#10;הטקסט ימולא אוטומטית לאחר העלאת קובץ."></textarea>
+        </div>
+        <div class="form-group">
+          <label>אמצעים ספרותיים ופירושים חשובים (אופציונלי)</label>
+          <textarea id="formLiterary" rows="4"
+            placeholder="למשל: מילה מנחה — 'ויקם'; ניגוד בין יצחק לישמעאל; חזרה על מילת 'יחדו'...&#10;המורה האי יתייחס לאלו בשאלות לתלמידים."></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" id="saveChapterBtn" onclick="window.saveChapter()">💾 שמור פרק</button>
+          <button class="btn-secondary" onclick="window.closeChapterForm()">ביטול</button>
+        </div>
+        <div class="error-msg" id="chapterFormError"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <!-- STUDENTS TAB -->
+  <div id="pane-students" class="tab-content" style="display:none">
+    <div class="section-card">
+      <div class="section-title">👥 רשימת תלמידים מורשים</div>
+      <div style="font-size:13px;color:var(--text-medium);margin-bottom:16px;line-height:1.6;
+        padding:10px 14px;background:rgba(196,154,34,.08);border-radius:6px;border-right:3px solid var(--gold)">
+        רק תלמידים שמופיעים כאן יוכלו להיכנס לממשק התלמיד עם קוד הכיתה.
+        אם הרשימה ריקה — כל תלמיד יכול להיכנס.
+      </div>
+      <div class="roster-list" id="rosterList">
+        <div class="roster-empty">טוען רשימה...</div>
+      </div>
+      <div class="roster-add-row" style="margin-top:12px">
+        <input type="text" id="rosterInput" placeholder="הכנס שם תלמיד והוסף" maxlength="60"
+          onkeydown="if(event.key==='Enter') window.addRosterStudent()">
+        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="window.addRosterStudent()">+ הוסף</button>
+      </div>
+      <div style="margin-top:16px;font-size:12px;color:var(--text-light)">
+        💡 הכנס שם תלמיד ולחץ Enter או "+ הוסף". לחץ ✕ ליד שם להסרה.
+      </div>
+    </div>
+  </div>
+
+  <div id="pane-settings" class="tab-content" style="display:none">
+    <div class="section-card">
+      <div class="section-title">🔑 הגדרות</div>
+      <div style="font-size:13px;color:var(--text-medium);line-height:1.7;
+        padding:12px 16px;background:rgba(196,154,34,.08);border-radius:8px;border-right:3px solid var(--gold)">
+        ⚙️ שינוי מפתח ה-API מתבצע דרך <strong>ממשק המנהל</strong> בלבד.<br>
+        <span style="font-size:12px;color:var(--text-light)">פנה למנהל המערכת לעדכון המפתח.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">אישור</div>
+    <div class="modal-text"  id="modalText"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="window.closeModal()">ביטול</button>
+      <button class="btn-danger" id="modalConfirmBtn">אשר</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lesson Summary Modal -->
+<div id="summaryModal" style="display:none;position:fixed;inset:0;background:rgba(30,12,2,.75);
+  align-items:flex-start;justify-content:center;z-index:300;padding:24px 16px;overflow-y:auto;">
+  <div style="background:linear-gradient(160deg,#fff8e8,#f5e8c8);border:2px solid var(--border-gold);
+    border-radius:var(--radius-lg);padding:28px;width:100%;max-width:680px;margin:auto;
+    box-shadow:0 20px 60px rgba(40,15,0,.4);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="font-family:'Frank Ruhl Libre',serif;font-size:21px;color:var(--brown-deep);">🤖 סיכום שיעור אוטומטי</div>
+      <button onclick="document.getElementById('summaryModal').style.display='none'"
+        style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);padding:4px 8px;">✕</button>
+    </div>
+    <div id="summaryContent" style="font-size:14px;line-height:1.8;color:var(--text-dark);
+      direction:rtl;white-space:pre-wrap;min-height:80px;"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn-secondary" onclick="window.copySummary()">📋 העתק</button>
+      <button class="btn-secondary" onclick="document.getElementById('summaryModal').style.display='none'">סגור</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Conversation Modal -->
+<div id="convModal">
+  <div class="conv-box">
+    <div class="conv-header">
+      <div class="conv-title" id="convTitle">שיחת תלמיד</div>
+      <button class="conv-close" onclick="window.closeConvModal()">✕</button>
+    </div>
+    <div class="conv-messages" id="convMessages"></div>
+  </div>
+</div>
+
 <script>
-window._fr.then(()=>{
-
-firebase.initializeApp({
-  apiKey:"AIzaSyAx1FqiaiUei4zS08A-k9mvf-Sndyz5IcQ",
-  authDomain:"tanakh-live.firebaseapp.com",
-  databaseURL:"https://tanakh-live-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:"tanakh-live",
-  storageBucket:"tanakh-live.firebasestorage.app",
-  messagingSenderId:"800812315850",
-  appId:"1:800812315850:web:e99443749fc1c0f046b033"
-});
-const db=firebase.database();
-
-const MASTER="admin2030";
-const TC=12;
-const DC={
-  basic:  {bg:"rgba(176,64,64,.09)",bd:"rgba(176,64,64,.3)", c:"#8b3030",l:"בסיס"},
-  medium: {bg:"rgba(184,134,11,.09)",bd:"rgba(184,134,11,.3)",c:"#8b6800",l:"ביניים"},
-  advanced:{bg:"rgba(61,122,82,.09)",bd:"rgba(61,122,82,.3)", c:"#2d6040",l:"מתקדם"},
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyAB_kj4R2BHtcP08rmpOpzPkdHnaQ2cSU0",
+  authDomain:        "tanach-school.firebaseapp.com",
+  databaseURL:       "https://tanach-school-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "tanach-school",
+  storageBucket:     "tanach-school.firebasestorage.app",
+  messagingSenderId: "740768274682",
+  appId:             "1:740768274682:web:fd751a55359377f53b5143"
 };
 
-let S={
-  screen:"login",isAdmin:false,myClass:"",
-  tab:"students",selCls:"all",flt:"all",
-  classes:{},teachers:{},ts:"—",unsub:null,
-  msg:"",err:"",
+let T = {
+  db:null, classCode:null, settings:null,
+  students:{}, chapters:{},
+  filter:'all', chFilter:'all',
+  sListener:null, cListener:null,
+  roster:[],
+};
+const LEVELS = { basic:'בסיס', intermediate:'ביניים', advanced:'מתקדם' };
+
+function loadScript(src) {
+  return new Promise(function(res,rej){ var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s); });
+}
+function showScreen(w) {
+  document.getElementById('loginScreen').style.display   = w==='login'  ?'flex' :'none';
+  document.getElementById('loadingScreen').style.display = w==='loading'?'flex' :'none';
+  document.getElementById('mainScreen').style.display    = w==='main'   ?'flex' :'none';
+  if(w==='main') document.getElementById('mainScreen').style.flexDirection='column';
+}
+function showToast(m) {
+  var t=document.getElementById('toast');t.textContent=m;t.classList.add('visible');
+  setTimeout(function(){t.classList.remove('visible');},3000);
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function ago(ts) {
+  if(!ts) return '';var m=Math.floor((Date.now()-ts)/60000);
+  if(m<1) return 'עכשיו';if(m<60) return 'לפני '+m+' דק׳';return 'לפני '+Math.floor(m/60)+' ש׳';
+}
+
+async function initFirebase() {
+  await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
+  await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js');
+  firebase.initializeApp(FIREBASE_CONFIG);
+  T.db = firebase.database();
+}
+
+/* ---- Login ---- */
+window.doTeacherLogin = async function() {
+  var code = document.getElementById('loginCode').value.trim().replace(/[.#$\/\[\]]/g,'');
+  var pass = document.getElementById('loginPass').value;
+  var err  = document.getElementById('loginError');
+  err.style.display='none';
+  if(!code||!pass){err.textContent='אנא מלא את כל השדות';err.style.display='block';return;}
+  showScreen('loading');
+  try {
+    var snap = await T.db.ref('classes/'+code+'/settings').once('value');
+    if(!snap.exists()) throw new Error('קוד כיתה לא נמצא');
+    var s=snap.val();
+    if(s.password!==pass) throw new Error('סיסמה שגויה');
+    T.classCode=code; T.settings=s;
+    document.getElementById('topbarSub').textContent='כיתה: '+code.toUpperCase();
+    T.roster = Array.isArray(s.roster) ? s.roster : [];
+    showScreen('main');
+    listenToData();
+    renderRoster();
+
+  } catch(e) { err.textContent=e.message;err.style.display='block';showScreen('login'); }
 };
 
-// ── Event delegation — the key fix for Google Sites iframes ──────────────
-document.addEventListener("click", e=>{
-  const el=e.target.closest("[data-action]")||e.target.parentElement?.closest("[data-action]");
-  if(!el)return;
-  const a=el.getAttribute("data-action");
-  const v=el.getAttribute("data-val")||"";
-  if(a==="login")        doLogin();
-  else if(a==="logout")  logout();
-  else if(a==="tab")     { S.tab=v; renderCurrent(); }
-  else if(a==="selcls")  { S.selCls=v; renderDashboard(); }
-  else if(a==="flt")     { S.flt=v; renderDashboard(); }
-  else if(a==="add")     addTeacher();
-  else if(a==="del")     deleteTeacher(v);
-  else if(a==="reset")   resetClass(v);
-});
+window.doLogout = function() {
+  if(T.sListener) T.db.ref('classes/'+T.classCode+'/students').off('value',T.sListener);
+  if(T.cListener) T.db.ref('classes/'+T.classCode+'/chapters').off('value',T.cListener);
+  T={db:T.db,classCode:null,settings:null,students:{},chapters:{},filter:'all',chFilter:'all',sListener:null,cListener:null};
+  document.getElementById('loginCode').value='';document.getElementById('loginPass').value='';
+  showScreen('login');
+};
 
-document.addEventListener("keydown", e=>{
-  if(e.key!=="Enter")return;
-  const id=e.target?.id;
-  if(id==="lP"||id==="lC") doLogin();
-  if(id==="nP"||id==="nC"||id==="nN") addTeacher();
-});
-
-// ── Firebase ──────────────────────────────────────────────────────────────
-function startListening(){
-  if(S.unsub)S.unsub();
-  const cRef=S.isAdmin?db.ref("classes"):db.ref(`classes/${S.myClass}`);
-  const tRef=db.ref("teachers");
-  cRef.on("value",snap=>{
-    if(S.isAdmin)S.classes=snap.val()||{};
-    else{S.classes={};S.classes[S.myClass]=snap.val()||{};}
-    S.ts=new Date().toLocaleTimeString("he-IL",{hour:"2-digit",minute:"2-digit"});
-    if(S.screen==="dashboard")renderCurrent();
+/* ---- Tabs ---- */
+window.switchTab = function(tab) {
+  ['dashboard','chapters','students','settings'].forEach(function(t) {
+    document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'');
+    document.getElementById('pane-'+t).style.display=t===tab?'block':'none';
   });
-  if(S.isAdmin)tRef.on("value",snap=>{S.teachers=snap.val()||{};if(S.screen==="dashboard")renderCurrent();});
-  S.unsub=()=>{cRef.off("value");tRef.off("value");};
-}
-function renderCurrent(){S.tab==="admin"?renderAdmin():renderDashboard();}
+  if(tab==='students') renderRoster();
+};
 
-// ── Login ─────────────────────────────────────────────────────────────────
-function renderLogin(err=""){
-  const app=document.getElementById("app");
-  app.innerHTML=`
-  <div style="min-height:100vh;background:#f5ede0;display:flex;align-items:center;justify-content:center;">
-    <div class="fade" style="text-align:center;max-width:360px;padding:36px;width:100%;">
-      <div style="font-family:'Frank Ruhl Libre',serif;font-size:26px;color:#3d2b1a;font-weight:700;margin-bottom:4px;">לוח מורה</div>
-      <div style="font-size:12px;color:#a08060;margin-bottom:28px;">Tanakh-Live · עֲקֵדַת יִצְחָק</div>
-      <div style="background:#f9f3e8;border:1.5px solid #c4956a;border-radius:12px;padding:22px;text-align:right;">
-        <div style="margin-bottom:13px;">
-          <label style="font-size:12px;color:#6b4c30;font-weight:600;display:block;margin-bottom:5px;">קוד כיתה:</label>
-          <input id="lC" placeholder="למשל: ז1 — ריק = כניסת מנהל"
-            style="width:100%;padding:10px 13px;font-size:14px;background:#f5ede0;border:1.5px solid #c4956a;border-radius:8px;color:#3d2b1a;"/>
-        </div>
-        <div style="margin-bottom:16px;">
-          <label style="font-size:12px;color:#6b4c30;font-weight:600;display:block;margin-bottom:5px;">סיסמה:</label>
-          <input id="lP" type="password" placeholder="סיסמת מורה"
-            style="width:100%;padding:10px 13px;font-size:14px;background:#f5ede0;border:1.5px solid #c4956a;border-radius:8px;color:#3d2b1a;"/>
-        </div>
-        ${err?`<div style="background:rgba(176,64,64,.1);border:1px solid rgba(176,64,64,.3);border-radius:7px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#8b3030;">${err}</div>`:""}
-        <button class="btn" data-action="login"
-          style="width:100%;background:#8b5e3c;color:#f9f3e8;padding:11px;border-radius:9px;font-weight:700;font-size:15px;border:none;">
-          🔑 כניסה
-        </button>
-      </div>
-      <div style="margin-top:11px;font-size:10px;color:#a08060;">כניסת מנהל: קוד כיתה ריק + סיסמת מנהל</div>
-    </div>
-  </div>`;
-  setTimeout(()=>document.getElementById("lC")?.focus(),100);
+/* ---- Listeners ---- */
+function listenToData() {
+  T.sListener = T.db.ref('classes/'+T.classCode+'/students').on('value',function(snap){
+    T.students=snap.val()||{};renderDashboard();
+  });
+  T.cListener = T.db.ref('classes/'+T.classCode+'/chapters').on('value',function(snap){
+    T.chapters=snap.val()||{};renderChaptersList();updateChFilter();
+  });
+
 }
 
-async function doLogin(){
-  const cls=(document.getElementById("lC")?.value||"").trim().toUpperCase();
-  const pass=(document.getElementById("lP")?.value||"").trim();
-  if(pass===MASTER){
-    S.isAdmin=true;S.myClass="";S.selCls="all";S.screen="dashboard";S.tab="students";
-    startListening();return;
-  }
-  if(!cls){renderLogin("סיסמה שגויה — או הזיני קוד כיתה");return;}
-  try{
-    const snap=await db.ref(`teachers/${cls}`).get();
-    if(!snap.exists()){renderLogin(`כיתה "${cls}" לא נמצאה`);return;}
-    if(snap.val().password!==pass){renderLogin("סיסמה שגויה");return;}
-    S.isAdmin=false;S.myClass=cls;S.selCls=cls;S.screen="dashboard";S.tab="students";
-    startListening();
-  }catch(e){renderLogin("שגיאת חיבור — נסי שוב");}
-}
+/* ---- Dashboard ---- */
+function renderDashboard() {
+  var ids=Object.keys(T.students);
+  var sessions=[];
+  ids.forEach(function(id) {
+    var st=T.students[id];
+    var chs=st.chapters||{};
+    Object.keys(chs).forEach(function(cid) {
+      sessions.push({sid:id,name:st.name,cid:cid,ses:chs[cid]});
+    });
+  });
 
-// ── Header ────────────────────────────────────────────────────────────────
-function headerHTML(active){
-  return `
-  <div style="background:#ede0cc;border-bottom:1.5px solid #c4956a;padding:0 22px;position:sticky;top:0;z-index:20;">
-    <div class="sroll"></div>
-    <div style="padding:10px 0;display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="font-family:'Frank Ruhl Libre',serif;font-size:17px;font-weight:700;color:#8b5e3c;">
-          לוח מורה — ${S.isAdmin?"כל הכיתות":`כיתה ${S.myClass}`}
-        </div>
-        <div style="font-size:9px;color:#a08060;margin-top:1px;">מתעדכן בזמן אמת ✦ ${S.ts}</div>
-      </div>
-      <button class="btn" data-action="logout"
-        style="background:transparent;border:1px solid #c4956a;color:#6b4c30;padding:5px 12px;border-radius:7px;font-size:11px;">יציאה</button>
-    </div>
-    <div style="display:flex;border-top:1px solid rgba(196,149,106,.3);">
-      <button class="tab ${active==='students'?'active':''}" data-action="tab" data-val="students">📊 תלמידים</button>
-      ${S.isAdmin?`<button class="tab ${active==='admin'?'active':''}" data-action="tab" data-val="admin">⚙️ ניהול מורים</button>`:""}
-    </div>
-    <div class="sroll"></div>
-  </div>`;
-}
+  var total    = ids.length;
+  var finished = sessions.filter(function(x){return x.ses.finished;}).length;
+  var active   = sessions.filter(function(x){return !x.ses.finished&&(x.ses.questionsAnswered||0)>0;}).length;
+  var needHelp = sessions.filter(function(x){return (x.ses.dontKnowCount||0)>=3||(x.ses.finished&&x.ses.quizScore!=null&&x.ses.quizScore<50);}).length;
 
-// ── Admin ─────────────────────────────────────────────────────────────────
-function renderAdmin(){
-  S.tab="admin";
-  const teachers=Object.entries(S.teachers).sort((a,b)=>a[0].localeCompare(b[0]));
-  document.getElementById("app").innerHTML=`
-  ${headerHTML("admin")}
-  <div style="max-width:820px;margin:0 auto;padding:20px 16px;">
-    <div style="background:#f9f3e8;border:1.5px solid #c4956a;border-radius:12px;padding:20px;margin-bottom:22px;">
-      <div style="font-family:'Frank Ruhl Libre',serif;font-size:16px;font-weight:700;color:#8b5e3c;margin-bottom:15px;">➕ הוספת מורה / כיתה</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:9px;align-items:end;">
-        <div>
-          <label style="font-size:11px;color:#6b4c30;font-weight:600;display:block;margin-bottom:4px;">קוד כיתה:</label>
-          <input id="nC" placeholder="ז1" maxlength="10"
-            style="width:100%;padding:9px 11px;font-size:13px;background:#f5ede0;border:1.5px solid #c4956a;border-radius:7px;color:#3d2b1a;"/>
-        </div>
-        <div>
-          <label style="font-size:11px;color:#6b4c30;font-weight:600;display:block;margin-bottom:4px;">שם המורה:</label>
-          <input id="nN" placeholder="מירי כהן" maxlength="30"
-            style="width:100%;padding:9px 11px;font-size:13px;background:#f5ede0;border:1.5px solid #c4956a;border-radius:7px;color:#3d2b1a;"/>
-        </div>
-        <div>
-          <label style="font-size:11px;color:#6b4c30;font-weight:600;display:block;margin-bottom:4px;">סיסמה:</label>
-          <input id="nP" placeholder="בחרי סיסמה" maxlength="30"
-            style="width:100%;padding:9px 11px;font-size:13px;background:#f5ede0;border:1.5px solid #c4956a;border-radius:7px;color:#3d2b1a;"/>
-        </div>
-        <button class="btn" data-action="add"
-          style="background:#8b5e3c;color:#f9f3e8;padding:9px 18px;border-radius:7px;font-weight:700;font-size:13px;border:none;">הוסף</button>
-      </div>
-      ${S.msg?`<div style="margin-top:10px;padding:8px 12px;background:rgba(61,122,82,.1);border:1px solid rgba(61,122,82,.3);border-radius:7px;font-size:12px;color:#2d6040;">${S.msg}</div>`:""}
-      ${S.err?`<div style="margin-top:10px;padding:8px 12px;background:rgba(176,64,64,.1);border:1px solid rgba(176,64,64,.3);border-radius:7px;font-size:12px;color:#8b3030;">${S.err}</div>`:""}
-    </div>
+  document.getElementById('statTotal').textContent    = total;
+  document.getElementById('statActive').textContent   = active;
+  document.getElementById('statFinished').textContent = finished;
+  document.getElementById('statHelp').textContent     = needHelp;
 
-    <div style="font-family:'Frank Ruhl Libre',serif;font-size:15px;font-weight:700;color:#8b5e3c;margin-bottom:12px;">📋 מורים רשומים (${teachers.length})</div>
-
-    ${teachers.length===0?`
-    <div style="text-align:center;padding:44px;color:#a08060;">
-      <div style="font-size:30px;margin-bottom:9px;">👩‍🏫</div>
-      <div style="font-size:13px;">עדיין אין מורים. השתמשי בטופס למעלה.</div>
-    </div>`:
-    `<div style="display:flex;flex-direction:column;gap:8px;">
-      ${teachers.map(([cls,t])=>{
-        const cnt=Object.keys(S.classes[cls]?.students||{}).length;
-        return `<div style="background:#f9f3e8;border:1.5px solid #c4956a;border-radius:10px;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:11px;">
-            <div style="width:35px;height:35px;border-radius:50%;background:linear-gradient(135deg,#c4956a,#8b5e3c);display:flex;align-items:center;justify-content:center;font-size:14px;color:#f9f3e8;font-weight:700;">${t.name?.charAt(0)||"?"}</div>
-            <div>
-              <div style="font-weight:700;font-size:14px;color:#3d2b1a;">${t.name||"—"}</div>
-              <div style="font-size:10px;color:#a08060;margin-top:2px;">
-                כיתה <b style="color:#8b5e3c;">${cls}</b> ·
-                סיסמה: <code style="background:#ede0cc;padding:1px 6px;border-radius:3px;">${t.password}</code> ·
-                ${cnt} תלמידים
-              </div>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;">
-            <button class="btn" data-action="reset" data-val="${cls}"
-              style="background:transparent;border:1px solid #c4956a;color:#a08060;padding:5px 10px;border-radius:6px;font-size:11px;">🗑 נקה תלמידים</button>
-            <button class="btn" data-action="del" data-val="${cls}"
-              style="background:rgba(176,64,64,.08);border:1px solid rgba(176,64,64,.3);color:#8b3030;padding:5px 10px;border-radius:6px;font-size:11px;">✕ מחק כיתה</button>
-          </div>
-        </div>`;
-      }).join("")}
-    </div>`}
-
-    <div style="margin-top:22px;padding:12px 15px;background:#f9f3e8;border:1px solid #c4956a;border-radius:9px;font-size:11px;color:#a08060;line-height:1.9;">
-      <b style="color:#8b5e3c;">סיסמת מנהל:</b>
-      <code style="background:#ede0cc;padding:1px 6px;border-radius:3px;">${MASTER}</code>
-      — שמרי אותה. לשינוי יש לערוך את teacher.html.
-    </div>
-  </div>`;
-}
-
-async function addTeacher(){
-  const cls=(document.getElementById("nC")?.value||"").trim().toUpperCase();
-  const name=(document.getElementById("nN")?.value||"").trim();
-  const pass=(document.getElementById("nP")?.value||"").trim();
-  S.msg="";S.err="";
-  if(!cls||!name||!pass){S.err="יש למלא את כל השדות";renderAdmin();return;}
-  if(pass===MASTER){S.err="לא ניתן להשתמש בסיסמת המנהל";renderAdmin();return;}
-  try{
-    await db.ref(`teachers/${cls}`).set({name,password:pass});
-    S.msg=`✅ "${name}" נוסף/ה לכיתה ${cls}`;renderAdmin();
-  }catch(e){S.err="שגיאה — נסי שוב";renderAdmin();}
-}
-
-async function deleteTeacher(cls){
-  if(!confirm(`למחוק את כיתה ${cls} וכל נתוניה?`))return;
-  try{
-    await db.ref(`teachers/${cls}`).remove();
-    await db.ref(`classes/${cls}`).remove();
-    S.msg=`כיתה ${cls} נמחקה`;renderAdmin();
-  }catch(e){S.err="שגיאה";renderAdmin();}
-}
-
-async function resetClass(cls){
-  if(!confirm(`לנקות את נתוני התלמידים של כיתה ${cls}?`))return;
-  try{
-    await db.ref(`classes/${cls}/students`).remove();
-    S.msg=`כיתה ${cls} נוקתה`;renderAdmin();
-  }catch(e){S.err="שגיאה";renderAdmin();}
-}
-
-// ── Students Dashboard ────────────────────────────────────────────────────
-function allStu(){
-  const a=[];
-  for(const[cls,d]of Object.entries(S.classes))
-    for(const s of Object.values(d?.students||{}))a.push({...s,classCode:cls});
-  return a;
-}
-function clsStu(cls){return Object.values(S.classes[cls]?.students||{});}
-
-function renderDashboard(){
-  S.tab="students";
-  const all=S.selCls==="all"?allStu():clsStu(S.selCls);
-  const classes=Object.keys(S.classes).sort();
-  const shown=all.filter(s=>{
-    if(S.flt==="done")  return s.done;
-    if(S.flt==="active")return!s.done;
-    if(S.flt==="help")  return!s.done&&(s.pct||0)<30&&(s.qNum||0)>2;
+  // Filter
+  var cards = sessions.filter(function(x) {
+    var h=(x.ses.dontKnowCount||0)>=3||(x.ses.finished&&x.ses.quizScore!=null&&x.ses.quizScore<50);
+    if(T.filter==='finished'&&!x.ses.finished) return false;
+    if(T.filter==='active'&&(x.ses.finished||(x.ses.questionsAnswered||0)===0)) return false;
+    if(T.filter==='help'&&!h) return false;
+    if(T.chFilter!=='all'&&x.cid!==T.chFilter) return false;
     return true;
   });
-  const help=all.filter(s=>!s.done&&(s.pct||0)<30&&(s.qNum||0)>2);
-  const avg=all.length?Math.round(all.reduce((a,s)=>a+(s.pct||0),0)/all.length):0;
 
-  const cards=shown.length===0?`
-    <div style="text-align:center;padding:50px;color:#a08060;">
-      <div style="font-size:32px;margin-bottom:9px;">📭</div>
-      <div style="font-size:13px;">${all.length===0?"עדיין אין תלמידים בכיתה זו.":"אין תלמידים בקטגוריה זו."}</div>
-      ${all.length===0?`<div style="font-size:11px;margin-top:5px;">כשתלמיד יכנס עם קוד הכיתה — הוא יופיע כאן מיד.</div>`:""}
-    </div>`:
-    `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;">
-      ${shown.map(s=>{
-        const d=DC[s.depth]||DC.basic;
-        return`<div class="card fade" style="background:${s.done?'linear-gradient(135deg,rgba(184,134,11,.06),rgba(196,149,106,.08))':'#f9f3e8'};border:1.5px solid ${s.done?"#d4a843":"#c4956a"};border-radius:12px;padding:13px 14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
-            <div style="display:flex;align-items:center;gap:7px;">
-              <div style="width:31px;height:31px;border-radius:50%;background:linear-gradient(135deg,#c4956a,#8b5e3c);display:flex;align-items:center;justify-content:center;font-size:13px;color:#f9f3e8;font-weight:700;">${s.name?.charAt(0)||"?"}</div>
-              <div>
-                <div style="font-weight:700;font-size:13px;color:#3d2b1a;font-family:'Frank Ruhl Libre',serif;">${s.name||"—"}</div>
-                <div style="font-size:9px;color:#a08060;">${S.isAdmin?`כיתה ${s.classCode} · `:""}${s.ts||"—"}</div>
-              </div>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
-              ${s.done?`<span style="font-size:10px;color:#b8860b;font-weight:700;">📜 סיים</span>`:""}
-              <span style="font-size:9px;padding:2px 6px;border-radius:9px;font-weight:700;background:${d.bg};border:1px solid ${d.bd};color:${d.c};">${d.l}</span>
-            </div>
-          </div>
-          <div style="margin-bottom:6px;">
-            <div style="display:flex;justify-content:space-between;font-size:9px;color:#a08060;margin-bottom:2px;">
-              <span>${s.done?"הסתיים":"בתהליך"}</span>
-              <span style="font-weight:700;color:${s.done?"#b8860b":"#8b5e3c"};">${s.pct||0}%</span>
-            </div>
-            <div style="background:#ede0cc;border-radius:4px;height:5px;overflow:hidden;">
-              <div style="background:${s.done?'linear-gradient(90deg,#b8860b,#d4a843)':'linear-gradient(90deg,#c4956a,#d4a843)'};height:5px;width:${s.pct||0}%;transition:width .6s;border-radius:4px;"></div>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;font-size:9px;color:#a08060;margin-bottom:6px;">
-            <span>🎯 ${s.qNum||0} שאלות</span><span>📚 ${s.coveredCount||0}/${TC} נושאים</span>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:3px;">
-            ${Array.from({length:TC},(_,i)=>`<div style="width:10px;height:10px;border-radius:2px;background:${i<(s.coveredCount||0)?"#c4956a":"#ede0cc"};border:1px solid ${i<(s.coveredCount||0)?"#8b5e3c":"rgba(196,149,106,.3)"};"></div>`).join("")}
-          </div>
-        </div>`;
-      }).join("")}
-    </div>`;
+  // Students with no sessions
+  if(T.filter==='all'&&T.chFilter==='all') {
+    ids.forEach(function(id) {
+      if(!T.students[id].chapters||!Object.keys(T.students[id].chapters).length)
+        cards.push({sid:id,name:T.students[id].name,cid:null,ses:null,noSession:true});
+    });
+  }
 
-  document.getElementById("app").innerHTML=`
-  ${headerHTML("students")}
-  <div style="max-width:1040px;margin:0 auto;padding:16px 15px;">
+  cards.sort(function(a,b) {
+    var ha=a.ses&&((a.ses.dontKnowCount||0)>=3||(a.ses.finished&&a.ses.quizScore!=null&&a.ses.quizScore<50));
+    var hb=b.ses&&((b.ses.dontKnowCount||0)>=3||(b.ses.finished&&b.ses.quizScore!=null&&b.ses.quizScore<50));
+    if(ha&&!hb) return -1; if(!ha&&hb) return 1;
+    return ((b.ses&&b.ses.lastActivity)||0)-((a.ses&&a.ses.lastActivity)||0);
+  });
 
-    ${S.isAdmin&&classes.length>0?`
-    <div style="display:flex;gap:5px;margin-bottom:13px;flex-wrap:wrap;">
-      <button class="btn" data-action="selcls" data-val="all"
-        style="background:${S.selCls==='all'?"#8b5e3c":"#f9f3e8"};color:${S.selCls==='all'?"#f9f3e8":"#6b4c30"};border:1px solid ${S.selCls==='all'?"#8b5e3c":"#c4956a"};padding:4px 11px;border-radius:7px;font-size:11px;font-weight:${S.selCls==='all'?700:400};">
-        כל הכיתות (${allStu().length})
-      </button>
-      ${classes.map(cls=>`<button class="btn" data-action="selcls" data-val="${cls}"
-        style="background:${S.selCls===cls?"#8b5e3c":"#f9f3e8"};color:${S.selCls===cls?"#f9f3e8":"#6b4c30"};border:1px solid ${S.selCls===cls?"#8b5e3c":"#c4956a"};padding:4px 11px;border-radius:7px;font-size:11px;font-weight:${S.selCls===cls?700:400};">
-        ${cls} (${clsStu(cls).length})
-      </button>`).join("")}
-    </div>`:""}
-
-    ${all.length>0?`
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:15px;">
-      ${[{icon:"👥",v:all.length,l:"תלמידים",c:"#8b5e3c"},{icon:"✅",v:all.filter(s=>s.done).length,l:"סיימו",c:"#3d7a52"},{icon:"📊",v:`${avg}%`,l:"ממוצע כיסוי",c:"#b8860b"},{icon:"🆘",v:help.length,l:"צריכים עזרה",c:help.length?"#b04040":"#a08060"}]
-        .map(x=>`<div style="background:#f9f3e8;border:1px solid #c4956a;border-radius:9px;padding:10px;text-align:center;">
-          <div style="font-size:17px;margin-bottom:2px;">${x.icon}</div>
-          <div style="font-size:19px;font-weight:700;color:${x.c};font-family:'Frank Ruhl Libre',serif;">${x.v}</div>
-          <div style="font-size:9px;color:#a08060;margin-top:1px;">${x.l}</div>
-        </div>`).join("")}
-    </div>`:""}
-
-    ${help.length>0?`
-    <div style="background:rgba(176,64,64,.07);border:1px solid rgba(176,64,64,.25);border-radius:8px;padding:9px 13px;margin-bottom:12px;">
-      <b style="color:#b04040;margin-left:6px;">🆘 עשויים להזדקק לעזרה:</b>
-      ${help.map(s=>`<span style="margin-left:6px;background:rgba(176,64,64,.12);padding:2px 7px;border-radius:8px;font-size:11px;color:#b04040;font-weight:600;">${s.name}${S.isAdmin?` (${s.classCode})`:""}</span>`).join("")}
-    </div>`:""}
-
-    <div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;">
-      ${[["all",`הכל (${all.length})`],["active",`בתהליך (${all.filter(s=>!s.done).length})`],["done",`סיימו (${all.filter(s=>s.done).length})`],["help",`עזרה (${help.length})`]]
-        .map(([k,l])=>`<button class="btn" data-action="flt" data-val="${k}"
-          style="background:${S.flt===k?"#8b5e3c":"#f9f3e8"};color:${S.flt===k?"#f9f3e8":"#6b4c30"};border:1px solid ${S.flt===k?"#8b5e3c":"#c4956a"};padding:4px 10px;border-radius:7px;font-size:11px;font-weight:${S.flt===k?700:400};">${l}</button>`).join("")}
-    </div>
-
-    ${cards}
-  </div>`;
+  var grid=document.getElementById('studentsGrid');
+  if(!cards.length) {
+    grid.innerHTML='<div class="empty-state"><div class="empty-icon">'+(total===0?'⏳':'🔍')+'</div><div>'+(total===0?'ממתין לתלמידים...':'אין תלמידים בסינון זה')+'</div></div>';
+    return;
+  }
+  grid.innerHTML = cards.map(function(x){ return buildStudentCard(x); }).join('');
+  renderChSummary(); // refresh summary if open
 }
 
-function logout(){if(S.unsub)S.unsub();S.screen="login";S.classes={};S.teachers={};renderLogin();}
+function buildStudentCard(c) {
+  if(c.noSession||!c.ses) {
+    var safeSid0 = c.sid.replace(/'/g,"\\'");
+    return '<div class="student-card">'+
+      '<div class="card-header"><div class="s-name">'+esc(c.name)+'</div></div>'+
+      '<div style="font-size:13px;color:var(--text-light);margin-top:6px">טרם התחיל ללמוד</div>'+
+    '</div>';
+  }
+  var s=c.ses, ch=T.chapters[c.cid]||{};
+  var progress=Math.min(100,s.progress||0);
+  var level=s.level||'basic';
+  var topics=s.topicsCovered||new Array(12).fill(false);
+  var chLabel=ch.title||((ch.book||'')+(ch.chapter?' פרק '+ch.chapter:''));
+  var dkCount=s.dontKnowCount||0;
+  var helpReasons=[];
+  if(dkCount>=3) helpReasons.push('אמר "אני לא יודע" '+dkCount+' פעמים');
+  if(s.finished&&s.quizScore!=null&&s.quizScore<50) helpReasons.push('ציון בוחן: '+s.quizScore+'%');
+  var helpFlag=helpReasons.length>0;
+  var reasonTitle=helpReasons.join(', ');
+  var squares=''; for(var i=0;i<12;i++) squares+='<div class="tsq'+(topics[i]?' on':'')+'"></div>';
 
-renderLogin();
-}); // end _fr
+  var tag='';
+  if(s.finished&&(!s.quizScore||s.quizScore>=50)) tag='<div class="finished-tag">✓ סיים</div>';
+  else if(helpFlag) tag='<div class="alert-tag" title="'+esc(reasonTitle)+'">⚠ זקוק לעזרה</div>';
+
+  var helpLine=helpFlag
+    ? '<div style="font-size:11px;color:var(--danger);margin-bottom:6px;padding:5px 9px;background:rgba(139,26,26,.08);border-radius:6px;direction:rtl;">⚠ '+esc(reasonTitle)+'</div>'
+    : '';
+
+  var safeSid=c.sid.replace(/'/g,"\\'");
+  var safeCid=c.cid.replace(/'/g,"\\'");
+  var safeName=esc(c.name).replace(/'/g,"&#39;");
+
+  return '<div class="student-card'+(helpFlag?' needs-help':'')+'">'+tag+
+    '<div class="card-header"><div class="s-name">'+esc(c.name)+'</div><div class="lvl-badge lvl-'+level+'">'+(LEVELS[level]||'בסיס')+'</div></div>'+
+    helpLine+
+    '<div class="ch-tag">📖 '+esc(chLabel||'פרק לא ידוע')+'</div>'+
+    '<div class="prog-row"><span class="prog-pct">'+progress+'%</span><span class="prog-q">'+(s.questionsAnswered||0)+' שאלות</span></div>'+
+    '<div class="prog-outer"><div class="prog-inner" style="width:'+progress+'%"></div></div>'+
+    '<div class="topics-row">'+squares+'</div>'+
+    '<div class="card-footer">'+
+      '<span style="font-size:12px;color:var(--text-light)">'+(s.finished?'🏆 סיים':'בתהליך')+(s.quizScore!=null?' · בוחן: <strong>'+s.quizScore+'%</strong>':'')+'</span>'+
+      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
+        '<button class="conv-btn" data-action="conv" data-sid="'+safeSid+'" data-cid="'+safeCid+'">💬 שיחה</button>'+
+        '<button class="conv-btn" data-action="reset" data-sid="'+safeSid+'" data-cid="'+safeCid+'" data-name="'+safeName+'" style="color:var(--danger);border-color:rgba(139,26,26,.3)">🔄 איפוס</button>'+
+        '<span class="card-time">'+ago(s.lastActivity)+'</span>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+window.showConversation = function(sid, chId) {
+  var st = T.students[sid];
+  if(!st) { showToast('תלמיד לא נמצא: '+sid); return; }
+  var s = (chId && st.chapters) ? (st.chapters[chId]||{}) : {};
+  var msgs = s.messages || [];
+  document.getElementById('convTitle').textContent = '💬 ' + esc(st.name||'תלמיד');
+  var container = document.getElementById('convMessages');
+  container.innerHTML = '';
+  if(!msgs.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text-light);padding:24px">אין הודעות עדיין</div>';
+  } else {
+    msgs.forEach(function(m) {
+      var div = document.createElement('div');
+      div.className = 'conv-msg ' + (m.role==='assistant'?'ai':'user');
+      var clean = (m.content||'').replace(/\[פסוק:\d+\]/g,'').replace(/\[סיום\]/g,'').replace(/\[בוחן\]/g,'').replace(/\[תשובות\][^\n]*/g,'').trim();
+      div.innerHTML = '<div class="conv-role">'+(m.role==='assistant'?'🤖 מורה AI':'👤 '+esc(st.name||'תלמיד'))+'</div>' + escHtml(clean).replace(/\n/g,'<br>');
+      container.appendChild(div);
+    });
+    setTimeout(function(){ container.scrollTop = container.scrollHeight; }, 50);
+  }
+  document.getElementById('convModal').classList.add('open');
+};
+
+window.resetStudentChapter = async function(sid, cid, studentName) {
+  var ch = T.chapters[cid] || {};
+  var chLabel = ch.title || ((ch.book||'') + (ch.chapter ? ' פרק '+ch.chapter : ''));
+  if(!confirm('איפוס פרק "'+chLabel+'" עבור '+studentName+'?\n\nכל ההתקדמות, השיחות והציונים יימחקו.')) return;
+  try {
+    await T.db.ref('classes/'+T.classCode+'/students/'+sid+'/chapters/'+cid).remove();
+    showToast('✓ הפרק אופס עבור '+studentName);
+  } catch(e) {
+    showToast('שגיאה: '+e.message);
+  }
+};
+
+window.closeConvModal = function() {
+  document.getElementById('convModal').classList.remove('open');
+};
+
+/* ---- Export CSV ---- */
+window.exportCSV = function() {
+  var rows = [['שם תלמיד','פרק','התקדמות','שאלות','ציון בוחן','אני לא יודע','סיים','פעילות אחרונה']];
+  Object.keys(T.students).forEach(function(sid) {
+    var st = T.students[sid];
+    var chs = st.chapters || {};
+    if(!Object.keys(chs).length) {
+      rows.push([st.name||'','','0%','0','','0','לא','']);
+      return;
+    }
+    Object.keys(chs).forEach(function(cid) {
+      var s = chs[cid];
+      var ch = T.chapters[cid]||{};
+      var chLabel = ch.title||(( ch.book||'')+(ch.chapter?' פרק '+ch.chapter:''));
+      var date = s.lastActivity ? new Date(s.lastActivity).toLocaleDateString('he-IL') : '';
+      rows.push([
+        st.name||'',
+        chLabel,
+        (s.progress||0)+'%',
+        s.questionsAnswered||0,
+        s.quizScore!=null ? s.quizScore+'%' : '',
+        s.dontKnowCount||0,
+        s.finished ? 'כן' : 'לא',
+        date
+      ]);
+    });
+  });
+  // BOM for Hebrew Excel support
+  var bom = '﻿';
+  var csv = bom + rows.map(function(r){ return r.map(function(v){ var s=String(v); return '"'+s.replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href=url;
+  a.download = 'תלמידים_'+(T.classCode||'כיתה')+'_'+new Date().toLocaleDateString('he-IL').replace(/\//g,'-')+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✓ הקובץ הורד');
+};
+
+/* ---- Lesson Summary ---- */
+window.generateLessonSummary = async function() {
+  var apiKey = T.settings && T.settings.claudeApiKey;
+  if(!apiKey) { showToast('אין מפתח API מוגדר'); return; }
+
+  var btn = document.getElementById('summaryBtn');
+  btn.disabled = true; btn.textContent = '⏳ מייצר סיכום...';
+  document.getElementById('summaryContent').textContent = 'מייצר סיכום שיעור...';
+  document.getElementById('summaryModal').style.display = 'flex';
+
+  // Build data snapshot
+  var studentLines = [];
+  Object.keys(T.students).forEach(function(sid) {
+    var st = T.students[sid];
+    var chs = st.chapters || {};
+    Object.keys(chs).forEach(function(cid) {
+      var s = chs[cid];
+      var ch = T.chapters[cid] || {};
+      var chLabel = ch.title || ((ch.book||'') + (ch.chapter ? ' פרק '+ch.chapter : ''));
+      var line = '- ' + (st.name||'תלמיד') + ': ' + chLabel +
+        ', התקדמות ' + (s.progress||0) + '%' +
+        ', ' + (s.questionsAnswered||0) + ' שאלות' +
+        (s.quizScore != null ? ', ציון בוחן ' + s.quizScore + '%' : '') +
+        (s.dontKnowCount ? ', לא ידע ' + s.dontKnowCount + ' פעמים' : '') +
+        (s.finished ? ', סיים' : '');
+      studentLines.push(line);
+    });
+    if (!Object.keys(chs).length) {
+      studentLines.push('- ' + (st.name||'תלמיד') + ': טרם התחיל');
+    }
+  });
+
+  var chapterNames = Object.values(T.chapters).map(function(ch) {
+    return ch.title || (ch.book + ' פרק ' + ch.chapter);
+  }).join(', ');
+
+  var promptText = [
+    'אתה מנהל חינוכי שמסכם שיעור תנ"ך.',
+    'פרקים שנלמדו: ' + chapterNames,
+    '',
+    'נתוני תלמידים:',
+    studentLines.join('\n'),
+    '',
+    'כתוב סיכום שיעור קצר (5-8 שורות) למורה הכולל:',
+    '1. סטטיסטיקה כללית (כמה סיימו, ממוצע התקדמות, ממוצע ציוני בוחן)',
+    '2. תלמידים שצריכים תשומת לב',
+    '3. תלמידים בולטים לטובה',
+    '4. המלצה קצרה לשיעור הבא',
+    'כתוב בעברית, תמציתי ומקצועי.'
+  ].join('\n');
+
+  try {
+    var resp = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=' + apiKey,
+      {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          contents: [{role:'user', parts:[{text: promptText}]}],
+          generationConfig: {maxOutputTokens: 600, temperature: 0.5}
+        })
+      }
+    );
+    var data = await resp.json();
+    var text = (data.candidates && data.candidates[0] && data.candidates[0].content &&
+                data.candidates[0].content.parts && data.candidates[0].content.parts[0].text)
+               || 'לא ניתן לייצר סיכום.';
+    document.getElementById('summaryContent').textContent = text;
+  } catch(e) {
+    document.getElementById('summaryContent').textContent = 'שגיאה: ' + e.message;
+  }
+  btn.disabled = false;
+  btn.textContent = '🤖 סיכום שיעור';
+}
+window.copySummary = function() {
+  var text = document.getElementById('summaryContent').textContent;
+  navigator.clipboard.writeText(text).then(function(){ showToast('✓ הועתק'); });
+};
+
+/* ---- Chapter Daily Summary ---- */
+var _chSummaryOpen = false;
+
+window.toggleChSummary = function() {
+  _chSummaryOpen = !_chSummaryOpen;
+  var body = document.getElementById('chSummaryBody');
+  var arrow = document.getElementById('chSummaryArrow');
+  if (_chSummaryOpen) {
+    body.classList.add('open');
+    arrow.textContent = '▲';
+    renderChSummary();
+  } else {
+    body.classList.remove('open');
+    arrow.textContent = '▼';
+  }
+};
+
+function renderChSummary() {
+  var body = document.getElementById('chSummaryBody');
+  if (!body || !body.classList.contains('open')) return;
+
+  var chIds = Object.keys(T.chapters);
+  if (!chIds.length) {
+    body.innerHTML = '<div style="font-size:13px;color:var(--text-light);padding:12px">אין פרקים</div>';
+    return;
+  }
+
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  var todayTs = today.getTime();
+
+  body.innerHTML = chIds.map(function(cid) {
+    var ch = T.chapters[cid] || {};
+    var chLabel = ch.title || ((ch.book||'') + (ch.chapter ? ' פרק '+ch.chapter : ''));
+
+    // Collect all student sessions for this chapter
+    var sessions = [];
+    Object.keys(T.students).forEach(function(sid) {
+      var st = T.students[sid];
+      var ses = st.chapters && st.chapters[cid];
+      if (ses) sessions.push({ name: st.name, ses: ses });
+    });
+
+    if (!sessions.length) return ''; // no students on this chapter
+
+    var total      = sessions.length;
+    var active     = sessions.filter(function(x){ return !x.ses.finished && (x.ses.questionsAnswered||0) > 0; }).length;
+    var finished   = sessions.filter(function(x){ return x.ses.finished; }).length;
+    var needHelp   = sessions.filter(function(x){ return (x.ses.dontKnowCount||0)>=3 || (x.ses.finished&&x.ses.quizScore!=null&&x.ses.quizScore<50); }).length;
+    var todayActive= sessions.filter(function(x){ return (x.ses.lastActivity||0) >= todayTs; }).length;
+
+    var progValues = sessions.map(function(x){ return x.ses.progress||0; });
+    var avgProg    = Math.round(progValues.reduce(function(a,b){return a+b;},0) / progValues.length);
+
+    var quizSessions = sessions.filter(function(x){ return x.ses.quizScore != null; });
+    var avgQuiz = quizSessions.length
+      ? Math.round(quizSessions.reduce(function(a,x){return a+(x.ses.quizScore||0);},0) / quizSessions.length)
+      : null;
+
+    // Students active today
+    var todayNames = sessions
+      .filter(function(x){ return (x.ses.lastActivity||0) >= todayTs; })
+      .map(function(x){ return esc(x.name); })
+      .join(', ');
+
+    return '<div class="ch-stat-card">'+
+      '<div class="ch-stat-title" title="'+esc(chLabel)+'">📖 '+esc(chLabel)+'</div>'+
+      '<div class="ch-stat-row"><span>תלמידים בפרק</span><span class="ch-stat-val">'+total+'</span></div>'+
+      '<div class="ch-stat-row"><span>פעילים היום</span><span class="ch-stat-val" style="color:'+(todayActive>0?'var(--success)':'var(--text-light)')+'">'+todayActive+'</span></div>'+
+      '<div class="ch-stat-row"><span>סיימו</span><span class="ch-stat-val" style="color:var(--success)">'+finished+'</span></div>'+
+      '<div class="ch-stat-row"><span>צריכים עזרה</span><span class="ch-stat-val" style="color:'+(needHelp>0?'var(--danger)':'var(--text-light)')+'">'+needHelp+'</span></div>'+
+      (avgQuiz!=null?'<div class="ch-stat-row"><span>ממוצע בוחן</span><span class="ch-stat-val">'+avgQuiz+'%</span></div>':'')+
+      '<div class="ch-mini-bar"><div class="ch-mini-bar-inner" style="width:'+avgProg+'%"></div></div>'+
+      '<div style="font-size:11px;color:var(--text-light);margin-top:4px;text-align:left">ממוצע התקדמות: '+avgProg+'%</div>'+
+      (todayNames?'<div style="font-size:11px;color:var(--text-medium);margin-top:6px;border-top:1px solid var(--border-gold);padding-top:6px">היום: '+todayNames+'</div>':'')+
+    '</div>';
+  }).join('');
+}
+
+window.setFilter = function(f) {
+  T.filter=f;
+  ['all','active','finished','help'].forEach(function(n){
+    document.getElementById('filter-'+n).className='filter-btn'+(n===f?' active':'');
+  });
+  renderDashboard();
+};
+window.setChFilter = function(v) { T.chFilter=v; renderDashboard(); };
+
+function updateChFilter() {
+  var sel=document.getElementById('chapterFilterSel');
+  var cur=sel.value;
+  sel.innerHTML='<option value="all">כל הפרקים</option>';
+  Object.keys(T.chapters).forEach(function(cid) {
+    var ch=T.chapters[cid];
+    var lbl=ch.title||((ch.book||'')+(ch.chapter?' פרק '+ch.chapter:''));
+    var o=document.createElement('option');o.value=cid;o.textContent=lbl;
+    if(cid===cur) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+
+/* ---- Chapters ---- */
+function renderChaptersList() {
+  var ids=Object.keys(T.chapters);
+  var list=document.getElementById('chaptersList');
+  if(!ids.length){list.innerHTML='<div class="no-chapters">אין פרקים — הוסיפי את הראשון!</div>';return;}
+  list.innerHTML=ids.map(function(cid,i) {
+    var ch=T.chapters[cid];
+    var lbl=ch.title||((ch.book||'?')+' פרק '+(ch.chapter||'?'));
+    var preview=(ch.summary||'').substring(0,120)+((ch.summary||'').length>120?'...':'');
+    var safe=cid.replace(/'/g,"\\'");
+    return '<div class="chapter-card-item">'+
+      '<div class="chapter-num-badge">'+(i+1)+'</div>'+
+      '<div class="chapter-item-info">'+
+        '<div class="chapter-item-title">'+esc(lbl)+'</div>'+
+        '<div class="chapter-item-meta">'+esc(ch.book||'')+(ch.chapter?' · פרק '+ch.chapter:'')+'</div>'+
+        '<div class="chapter-item-preview">'+esc(preview)+'</div>'+
+      '</div>'+
+      '<div class="chapter-item-actions">'+
+        '<button class="btn-secondary" style="font-size:12px;padding:6px 10px" onclick="window.openEditChapter(\''+safe+'\')">✏️ ערוך</button>'+
+        '<button class="btn-danger" onclick="window.deleteChapter(\''+safe+'\')">מחק</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+window.openAddChapter = function() {
+  document.getElementById('editChapterId').value='';
+  document.getElementById('formBook').value='';
+  document.getElementById('formChapter').value='';
+  document.getElementById('formTitle').value='';
+  document.getElementById('formSummary').value='';
+  document.getElementById('formLiterary').value='';
+  document.getElementById('saveChapterBtn').textContent='💾 הוסף פרק';
+  document.getElementById('chapterFormError').style.display='none';
+  var f=document.getElementById('chapterForm');
+  f.classList.add('open');f.scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+
+window.openEditChapter = function(cid) {
+  var ch=T.chapters[cid];if(!ch)return;
+  document.getElementById('editChapterId').value=cid;
+  document.getElementById('formBook').value=ch.book||'';
+  document.getElementById('formChapter').value=parseInt(ch.chapter)||'';
+  document.getElementById('formTitle').value=ch.title||'';
+  document.getElementById('formSummary').value=ch.summary||'';
+  document.getElementById('formLiterary').value=ch.literary||'';
+  document.getElementById('saveChapterBtn').textContent='💾 שמור שינויים';
+  document.getElementById('chapterFormError').style.display='none';
+  var f=document.getElementById('chapterForm');
+  f.classList.add('open');f.scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+
+window.closeChapterForm = function() {
+  document.getElementById('chapterForm').classList.remove('open');
+};
+
+window.saveChapter = async function() {
+  var cid=document.getElementById('editChapterId').value;
+  var book=document.getElementById('formBook').value;
+  var chapter=document.getElementById('formChapter').value;
+  var title=document.getElementById('formTitle').value.trim();
+  var summary=document.getElementById('formSummary').value.trim();
+  var literary=document.getElementById('formLiterary').value.trim();
+  var err=document.getElementById('chapterFormError');
+  err.style.display='none';
+  if(!book){err.textContent='אנא בחר ספר';err.style.display='block';return;}
+  if(!chapter){err.textContent='אנא הכנס מספר פרק';err.style.display='block';return;}
+  if(!summary){err.textContent='אנא הכנס סיכום';err.style.display='block';return;}
+  var data={book:book,chapter:parseInt(chapter),
+    title:title||(book+' פרק '+chapter),summary:summary,literary:literary||'',
+    updatedAt:firebase.database.ServerValue.TIMESTAMP};
+  try {
+    if(cid) {
+      await T.db.ref('classes/'+T.classCode+'/chapters/'+cid).update(data);
+      showToast('✓ פרק עודכן');
+    } else {
+      await T.db.ref('classes/'+T.classCode+'/chapters').push(
+        Object.assign({},data,{createdAt:firebase.database.ServerValue.TIMESTAMP})
+      );
+      showToast('✓ פרק נוסף');
+    }
+    window.closeChapterForm();
+  } catch(e){err.textContent='שגיאה: '+e.message;err.style.display='block';}
+};
+
+window.deleteChapter = function(cid) {
+  var ch=T.chapters[cid]||{};
+  var lbl=ch.title||((ch.book||'')+' פרק '+(ch.chapter||''));
+  showConfirm('מחיקת פרק','למחוק את "'+lbl+'"?',async function(){
+    await T.db.ref('classes/'+T.classCode+'/chapters/'+cid).remove();
+    closeModal();showToast('פרק נמחק');
+  });
+};
+
+/* ---- Settings ---- */
+/* ---- Roster ---- */
+function renderRoster() {
+  var list = document.getElementById('rosterList');
+  if (!list) return;
+  if (!T.roster.length) {
+    list.innerHTML = '<div class="roster-empty">הרשימה ריקה — כרגע כל תלמיד יכול להיכנס</div>';
+    return;
+  }
+  list.innerHTML = T.roster.map(function(name, i) {
+    return '<div class="roster-item">' +
+      '<span class="roster-item-name">👤 ' + esc(name) + '</span>' +
+      '<button class="roster-del" data-roster-idx="' + i + '" title="הסר">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+// Click delegation for roster delete buttons
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('[data-roster-idx]');
+  if (!btn) return;
+  var idx = parseInt(btn.dataset.rosterIdx);
+  T.roster.splice(idx, 1);
+  renderRoster();
+  saveRoster();
+});
+
+window.addRosterStudent = function() {
+  var inp = document.getElementById('rosterInput');
+  var name = inp.value.trim();
+  if (!name) return;
+  // Avoid duplicates (case-insensitive)
+  var exists = T.roster.some(function(n){ return n.trim().toLowerCase() === name.toLowerCase(); });
+  if (exists) { showToast('תלמיד זה כבר ברשימה'); inp.value=''; return; }
+  T.roster.push(name);
+  inp.value = '';
+  renderRoster();
+  saveRoster();
+};
+
+async function saveRoster() {
+  try {
+    await T.db.ref('classes/'+T.classCode+'/settings/roster').set(T.roster);
+    showToast('✓ הרשימה עודכנה');
+  } catch(e) { showToast('שגיאה: '+e.message); }
+}
+
+
+
+/* ---- Modal ---- */
+function showConfirm(title,text,onOk) {
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalText').textContent=text;
+  document.getElementById('modalConfirmBtn').onclick=onOk;
+  document.getElementById('confirmModal').classList.add('open');
+}
+window.closeModal=function(){document.getElementById('confirmModal').classList.remove('open');};
+document.getElementById('confirmModal').addEventListener('click',function(e){if(e.target===this)window.closeModal();});
+
+/* ---- Init ---- */
+/* ---- File Upload ---- */
+function setUploadStatus(msg, type) {
+  var el = document.getElementById('uploadStatus');
+  el.textContent = msg; el.className = 'upload-status ' + type;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+window.handleFileDrop = function(event) {
+  var file = event.dataTransfer.files[0];
+  if (file) processFile(file);
+};
+
+window.handleFileSelect = function(input) {
+  var file = input.files[0];
+  if (file) { processFile(file); input.value = ''; }
+};
+
+async function processFile(file) {
+  var name = file.name.toLowerCase();
+  setUploadStatus('⏳ קורא קובץ: ' + file.name + '...', 'loading');
+  try {
+    var text = '';
+    if (name.endsWith('.pdf')) {
+      text = await extractPDF(file);
+    } else if (name.endsWith('.docx')) {
+      text = await extractDOCX(file);
+    } else if (name.endsWith('.pptx')) {
+      text = await extractPPTX(file);
+    } else {
+      setUploadStatus('❌ סוג קובץ לא נתמך. אנא השתמש ב-PDF, DOCX או PPTX.', 'err');
+      return;
+    }
+    text = text.replace(/\s+/g, ' ').trim();
+    if (text.length < 20) { setUploadStatus('❌ לא הצלחתי לחלץ טקסט מהקובץ.', 'err'); return; }
+    document.getElementById('formSummary').value = text;
+    setUploadStatus('✓ הטקסט נקרא בהצלחה (' + text.length + ' תווים). ניתן לערוך לפני השמירה.', 'ok');
+  } catch(e) {
+    setUploadStatus('❌ שגיאה: ' + e.message, 'err');
+  }
+}
+
+async function extractPDF(file) {
+  if (!window.pdfjsLib) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  var ab = await file.arrayBuffer();
+  var pdf = await window.pdfjsLib.getDocument({data: ab}).promise;
+  var pages = [];
+  for (var i = 1; i <= pdf.numPages; i++) {
+    var page = await pdf.getPage(i);
+    var tc = await page.getTextContent();
+    pages.push(tc.items.map(function(it){ return it.str; }).join(' '));
+  }
+  return pages.join('\n');
+}
+
+async function extractDOCX(file) {
+  if (!window.mammoth) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+  }
+  var ab = await file.arrayBuffer();
+  var result = await window.mammoth.extractRawText({arrayBuffer: ab});
+  return result.value;
+}
+
+async function extractPPTX(file) {
+  if (!window.JSZip) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  }
+  var ab = await file.arrayBuffer();
+  var zip = await JSZip.loadAsync(ab);
+  var texts = [];
+  var slideKeys = Object.keys(zip.files)
+    .filter(function(k){ return /ppt\/slides\/slide\d+\.xml/.test(k); })
+    .sort();
+  for (var i = 0; i < slideKeys.length; i++) {
+    var xml = await zip.files[slideKeys[i]].async('string');
+    var matches = xml.match(/<a:t[^>]*>([^<]+)<\/a:t>/g) || [];
+    var slideText = matches.map(function(m){ return m.replace(/<[^>]+>/g,''); }).join(' ');
+    if (slideText.trim()) texts.push(slideText.trim());
+  }
+  return texts.join('\n');
+}
+
+// Document-level delegation for student card buttons
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  var action = btn.dataset.action;
+  var sid    = btn.dataset.sid;
+  var cid    = btn.dataset.cid;
+  var name   = btn.dataset.name || '';
+  if (action === 'conv')  window.showConversation(sid, cid);
+  if (action === 'reset') window.resetStudentChapter(sid, cid, name);
+});
+
+window.addEventListener('DOMContentLoaded',async function(){
+  await initFirebase();showScreen('login');
+});
 </script>
 </body>
 </html>
