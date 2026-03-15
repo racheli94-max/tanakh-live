@@ -355,6 +355,15 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
   font-family:'Frank Ruhl Libre',serif;font-size:15px;line-height:1.7;color:var(--brown-deep);}
 .verse-snippet-label{font-size:11px;font-weight:700;color:var(--gold-deep);margin-bottom:3px;
   font-family:'Heebo',sans-serif;}
+
+.search-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;
+  background:rgba(196,154,34,.08);border-bottom:1px solid var(--border-gold);}
+.search-bar input{flex:1;padding:6px 10px;border:1.5px solid var(--border-gold);border-radius:20px;
+  font-size:13px;background:rgba(255,252,240,.9);outline:none;direction:rtl;font-family:'Heebo',sans-serif;}
+.search-bar input:focus{border-color:var(--gold);}
+.search-count{font-size:11px;color:var(--text-light);white-space:nowrap;}
+.word.search-hl{background:#ffe082;border-radius:3px;outline:2px solid #f0a500;}
+
 </style>
 
   <!-- Service Worker for offline support -->
@@ -477,6 +486,14 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
 
 <!-- MAIN LEARNING APP -->
 <div id="offlineBanner" class="offline-banner">⚠️ אין חיבור לאינטרנט — בדוק את החיבור שלך ונסה שוב</div>
+<div id="teacherNoteBanner" style="display:none;position:fixed;inset:0;background:rgba(30,12,2,.80);z-index:600;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:linear-gradient(160deg,#fffbee,#f5e8c4);border:2px solid var(--border-gold);border-radius:18px;padding:28px 26px;max-width:420px;width:100%;text-align:right;direction:rtl;box-shadow:0 20px 60px rgba(40,15,0,.4);">
+    <div style="font-size:40px;text-align:center;margin-bottom:10px;">📝</div>
+    <div style="font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-deep);text-align:center;margin-bottom:6px;">הערה מהמורה</div>
+    <div style="font-size:14px;line-height:1.7;color:var(--text-medium);padding:14px;background:rgba(196,154,34,.1);border-radius:10px;border:1px solid var(--border-gold);margin:14px 0;" id="teacherNoteText"></div>
+    <button class="btn-primary" style="width:100%;margin-top:4px" onclick="window.dismissTeacherNote()">הבנתי ✓</button>
+  </div>
+</div>
 <div id="mainApp">
   <header class="app-header">
     <div>
@@ -509,8 +526,9 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
         </div>
       </div>
       <div class="input-area">
-        <div class="input-row">
-          <textarea id="userInput" placeholder="כתוב את תשובתך כאן..." rows="1"
+        <div style="font-size:11px;color:var(--text-light);text-align:left;margin-bottom:2px"><span id="charCount">0</span>/400</div>
+      <div class="input-row">
+          <textarea id="userInput" placeholder="כתוב את תשובתך כאן..." rows="1" maxlength="400"
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.sendUserMessage();}"
             oninput="window.autoResizeInput(this)"></textarea>
           <button class="btn-send" id="sendBtn" onclick="window.sendUserMessage()">➤</button>
@@ -527,6 +545,12 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
       <div class="bible-panel-header">
         <div class="bible-chapter-title" id="bibleTitle">טוען פרק...</div>
         <div class="bible-hint">לחץ על מילה לקבלת הסבר</div>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="wordSearchInput" placeholder="חפש מילה בפרק..." maxlength="30"
+          oninput="window.searchWord(this.value)" autocomplete="off">
+        <span class="search-count" id="searchCount"></span>
+        <button onclick="window.clearSearch()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-light);padding:0 2px;">✕</button>
       </div>
       <div class="word-hl-bar" id="wordHlBar">
         <span id="wordHlLabel"></span>
@@ -719,6 +743,8 @@ let APP = {
   highlightedVerse: null,
   isWaiting: false,
   awaitingMC: false,
+  sessionStart: Date.now(),
+  timeSpent: 0,
   quizScore: null,
   dontKnowCount: 0,
   wrongAnswerCount: 0,
@@ -918,7 +944,9 @@ window.doLogin = async function() {
    Chapter Picker
    ============================================================ */
 function renderChapterPicker(studentProgress) {
-  var ids = Object.keys(APP.chapters);
+  var ids = Object.keys(APP.chapters)
+    .filter(function(cid){ return APP.chapters[cid].visible !== false; })
+    .sort(function(a,b){ return (APP.chapters[a].order||0)-(APP.chapters[b].order||0); });
   var grid = document.getElementById('chaptersGrid');
 
   if(!ids.length) {
@@ -1176,6 +1204,8 @@ function startLearningApp() {
 
   updateLevelUI();
   updateProgressUI();
+  // Check for teacher note
+  checkTeacherNote();
   // Save scroll position on scroll
   var _area = document.getElementById('messagesArea');
   if(_area) _area.addEventListener('scroll', function(){ saveScrollPos(); }, {passive:true});
@@ -1683,6 +1713,58 @@ function renderAllMessages() {
   scrollChat();
 }
 
+/* ============================================================
+   Word Search
+   ============================================================ */
+window.searchWord = function(query) {
+  var q = query.trim().replace(/[ְ-ׇ]/g,''); // strip nikud
+  // Clear previous
+  document.querySelectorAll('#bibleTextArea .word.search-hl').forEach(function(el){ el.classList.remove('search-hl'); });
+  var countEl = document.getElementById('searchCount');
+  if(!q) { countEl.textContent=''; return; }
+  var allWords = document.querySelectorAll('#bibleTextArea .word');
+  var count = 0;
+  var firstEl = null;
+  allWords.forEach(function(el) {
+    var text = (el.textContent||'').replace(/[ְ-ׇ]/g,'');
+    if(text.includes(q)) {
+      el.classList.add('search-hl');
+      count++;
+      if(!firstEl) firstEl = el;
+    }
+  });
+  countEl.textContent = count ? count+' תוצאות' : 'לא נמצא';
+  if(firstEl) firstEl.scrollIntoView({behavior:'smooth', block:'center'});
+};
+
+window.clearSearch = function() {
+  document.getElementById('wordSearchInput').value = '';
+  document.getElementById('searchCount').textContent = '';
+  document.querySelectorAll('#bibleTextArea .word.search-hl').forEach(function(el){ el.classList.remove('search-hl'); });
+};
+
+/* ============================================================
+   Teacher Note
+   ============================================================ */
+function checkTeacherNote() {
+  if(!APP.db||!APP.classCode||!APP.studentId) return;
+  APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/teacherNote').once('value', function(snap) {
+    if(!snap.exists()) return;
+    var note = snap.val();
+    if(!note||!note.text) return;
+    // Show banner
+    document.getElementById('teacherNoteText').textContent = note.text;
+    document.getElementById('teacherNoteBanner').style.display = 'flex';
+  });
+}
+
+window.dismissTeacherNote = function() {
+  document.getElementById('teacherNoteBanner').style.display = 'none';
+  // Clear note from Firebase so it doesn't show again
+  if(APP.db&&APP.classCode&&APP.studentId)
+    APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/teacherNote').remove();
+};
+
 function scrollChat() {
   var area=document.getElementById('messagesArea');
   setTimeout(function(){ area.scrollTop=area.scrollHeight; },50);
@@ -1724,6 +1806,8 @@ window.addEventListener('offline', function(){ document.getElementById('offlineB
 
 window.autoResizeInput = function(el) {
   el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';
+  var counter = document.getElementById('charCount');
+  if(counter) counter.textContent = el.value.length;
 };
 
 function updateTopicsCovered() {
@@ -1787,6 +1871,7 @@ function syncToFirebase() {
   if(!APP.db||!APP.classCode||!APP.studentId||!APP.currentChapterId) return;
   var data={
     progress:APP.progress, level:APP.level,
+    timeSpent: (APP.timeSpent||0) + Math.round((Date.now()-APP.sessionStart)/1000),
     questionsAnswered:APP.questionsAnswered,
     topicsCovered:APP.topicsCovered, finished:APP.finished,
     quizScore: APP.quizScore||null,
@@ -1988,6 +2073,7 @@ function doFinish(quizScore) {
 }
 
 window.restartChapter = function() {
+  if(!confirm('להתחיל את הפרק מחדש?\n\nהתקדמות הנוכחית תישמר בהיסטוריה — המורה יוכל לראות את כל הניסיונות שלך.')) return;
   document.getElementById('finishedBanner').style.display='none';
   document.getElementById('quizScreen').style.display='none';
   // Reset session state
@@ -1996,7 +2082,23 @@ window.restartChapter = function() {
   APP.finished=false; APP.quizScore=null; QUIZ_DATA={questions:[],answers:[],userAnswers:[]};
   // Reset Firebase for this chapter
   if(APP.db&&APP.classCode&&APP.studentId&&APP.currentChapterId) {
-    APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/chapters/'+APP.currentChapterId).remove();
+    // Archive current attempt before resetting
+    var attemptData = {
+      messages:    APP.messages.slice(-40),
+      progress:    APP.progress,
+      quizScore:   APP.quizScore,
+      questionsAnswered: APP.questionsAnswered,
+      finished:    APP.finished,
+      archivedAt:  Date.now()
+    };
+    var attemptRef = APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/chapters/'+APP.currentChapterId+'/attempts').push();
+    attemptRef.set(attemptData).catch(function(){});
+    // Now reset active session (keep attempts)
+    APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/chapters/'+APP.currentChapterId).update({
+      messages:[], progress:0, questionsAnswered:0, level:'basic',
+      topicsCovered:new Array(12).fill(false), finished:false, quizScore:null,
+      dontKnowCount:0, lastActivity:firebase.database.ServerValue.TIMESTAMP
+    });
   }
   startLearningApp();
 };
