@@ -470,6 +470,78 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
             </select>
           </div>
         </div>
+        <!-- Verse range -->
+        <div style="background:rgba(196,154,34,.07);border:1px solid var(--border-gold);border-radius:8px;padding:12px 14px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:600;color:var(--brown-primary);margin-bottom:8px;">📌 פסוקים ספציפיים (אופציונלי)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-group" style="margin-bottom:0">
+              <label style="font-size:12px">פסוק התחלה</label>
+              <input type="number" id="formVerseFrom" placeholder="1" min="1" max="200"
+                style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;direction:ltr;">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label style="font-size:12px">פסוק סיום</label>
+              <input type="number" id="formVerseTo" placeholder="סוף הפרק" min="1" max="200"
+                style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;direction:ltr;">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:6px;">השאר ריק כדי ללמוד את כל הפרק. לדוגמה: פסוק 1 עד 15.</div>
+        </div>
+            <select id="formChapter">
+              <option value="">— בחר —</option>
+              <option value="1">א (1)</option>
+              <option value="2">ב (2)</option>
+              <option value="3">ג (3)</option>
+              <option value="4">ד (4)</option>
+              <option value="5">ה (5)</option>
+              <option value="6">ו (6)</option>
+              <option value="7">ז (7)</option>
+              <option value="8">ח (8)</option>
+              <option value="9">ט (9)</option>
+              <option value="10">י (10)</option>
+              <option value="11">יא (11)</option>
+              <option value="12">יב (12)</option>
+              <option value="13">יג (13)</option>
+              <option value="14">יד (14)</option>
+              <option value="15">טו (15)</option>
+              <option value="16">טז (16)</option>
+              <option value="17">יז (17)</option>
+              <option value="18">יח (18)</option>
+              <option value="19">יט (19)</option>
+              <option value="20">כ (20)</option>
+              <option value="21">כא (21)</option>
+              <option value="22">כב (22)</option>
+              <option value="23">כג (23)</option>
+              <option value="24">כד (24)</option>
+              <option value="25">כה (25)</option>
+              <option value="26">כו (26)</option>
+              <option value="27">כז (27)</option>
+              <option value="28">כח (28)</option>
+              <option value="29">כט (29)</option>
+              <option value="30">ל (30)</option>
+              <option value="31">לא (31)</option>
+              <option value="32">לב (32)</option>
+              <option value="33">לג (33)</option>
+              <option value="34">לד (34)</option>
+              <option value="35">לה (35)</option>
+              <option value="36">לו (36)</option>
+              <option value="37">לז (37)</option>
+              <option value="38">לח (38)</option>
+              <option value="39">לט (39)</option>
+              <option value="40">מ (40)</option>
+              <option value="41">מא (41)</option>
+              <option value="42">מב (42)</option>
+              <option value="43">מג (43)</option>
+              <option value="44">מד (44)</option>
+              <option value="45">מה (45)</option>
+              <option value="46">מו (46)</option>
+              <option value="47">מז (47)</option>
+              <option value="48">מח (48)</option>
+              <option value="49">מט (49)</option>
+              <option value="50">נ (50)</option>
+            </select>
+          </div>
+        </div>
         <div class="form-group">
           <label>כותרת מותאמת (אופציונלי)</label>
           <input type="text" id="formTitle" placeholder='למשל: "יוסף ואחיו"'>
@@ -1114,6 +1186,8 @@ window.openAddChapter = function() {
   document.getElementById('formTitle').value='';
   document.getElementById('formSummary').value='';
   document.getElementById('formLiterary').value='';
+  document.getElementById('formVerseFrom').value='';
+  document.getElementById('formVerseTo').value='';
   document.getElementById('saveChapterBtn').textContent='💾 הוסף פרק';
   document.getElementById('chapterFormError').style.display='none';
   var f=document.getElementById('chapterForm');
@@ -1128,6 +1202,8 @@ window.openEditChapter = function(cid) {
   document.getElementById('formTitle').value=ch.title||'';
   document.getElementById('formSummary').value=ch.summary||'';
   document.getElementById('formLiterary').value=ch.literary||'';
+  document.getElementById('formVerseFrom').value=ch.verseFrom||'';
+  document.getElementById('formVerseTo').value=ch.verseTo||'';
   document.getElementById('saveChapterBtn').textContent='💾 שמור שינויים';
   document.getElementById('chapterFormError').style.display='none';
   var f=document.getElementById('chapterForm');
@@ -1145,13 +1221,17 @@ window.saveChapter = async function() {
   var title=document.getElementById('formTitle').value.trim();
   var summary=document.getElementById('formSummary').value.trim();
   var literary=document.getElementById('formLiterary').value.trim();
+  var verseFrom=parseInt(document.getElementById('formVerseFrom').value)||null;
+  var verseTo=parseInt(document.getElementById('formVerseTo').value)||null;
   var err=document.getElementById('chapterFormError');
   err.style.display='none';
   if(!book){err.textContent='אנא בחר ספר';err.style.display='block';return;}
   if(!chapter){err.textContent='אנא הכנס מספר פרק';err.style.display='block';return;}
   if(!summary){err.textContent='אנא הכנס סיכום';err.style.display='block';return;}
+  if(verseFrom && verseTo && verseFrom > verseTo){err.textContent='פסוק התחלה חייב להיות לפני פסוק הסיום';err.style.display='block';return;}
   var data={book:book,chapter:parseInt(chapter),
     title:title||(book+' פרק '+chapter),summary:summary,literary:literary||'',
+    verseFrom:verseFrom, verseTo:verseTo,
     updatedAt:firebase.database.ServerValue.TIMESTAMP};
   try {
     if(cid) {
