@@ -974,6 +974,19 @@ async function loadBibleText(heBook, chapter) {
 }
 
 
+function fromHebrewLetter(s) {
+  var map = {
+    'א':1,'ב':2,'ג':3,'ד':4,'ה':5,'ו':6,'ז':7,'ח':8,'ט':9,
+    'י':10,'יא':11,'יב':12,'יג':13,'יד':14,'טו':15,'טז':16,
+    'יז':17,'יח':18,'יט':19,'כ':20,'כא':21,'כב':22,'כג':23,
+    'כד':24,'כה':25,'כו':26,'כז':27,'כח':28,'כט':29,'ל':30,
+    'לא':31,'לב':32,'לג':33,'לד':34,'לה':35,'לו':36,'לז':37,
+    'לח':38,'לט':39,'מ':40,'מא':41,'מב':42,'מג':43,'מד':44,
+    'מה':45,'מו':46,'מז':47,'מח':48,'מט':49,'נ':50
+  };
+  return map[s] || 0;
+}
+
 function toHebrewLetter(n) {
   var letters = ['','א','ב','ג','ד','ה','ו','ז','ח','ט','י',
     'יא','יב','יג','יד','טו','טז','יז','יח','יט','כ',
@@ -1196,11 +1209,11 @@ function buildSystemPrompt() {
     '## כללי ברזל',
     '1. שאלה אחת בלבד בכל הודעה — קצרה וברורה.',
     '2. **חובה בכל הודעה — ללא יוצא מן הכלל:**\n'
-    + '   א) פתח תמיד עם תג מערכת: [פסוק:N] כשN=ספרה ערבית.\n'
-    + '   ב) בגוף ההודעה: פסוקים אך ורק באותיות עבריות: פסוק א\', פסוק יד\'.\n'
-    + '   אסור לחלוטין: פסוק 3, פסוק 14, בפסוק 7.\n'
-    + '   נכון: [פסוק:3] ...בפסוק ג\'... | [פסוק:14] ...בפסוק יד\'...\n'
-    + '   כלל זה חל גם בתגובות, הסברים ורמזים — תמיד אותיות עבריות בלבד.',
+    + '   א) תג מערכת: [פסוק:N] — N חייב להיות ספרה ערבית בלבד (1,2,3...). **חל איסור מוחלט**: [פסוק:א], [פסוק:ז], [פסוק:ז-ח] — רק ספרות ערביות!\n'
+    + '   ב) בגוף ההודעה: פסוקים באותיות עבריות עם גרש: פסוק א\', פסוק יד\'. טווח: פסוק ז\'-ח\'.\n'
+    + '   אסור: פסוק 3, פסוק 14, [פסוק:ז].\n'
+    + '   נכון: [פסוק:3] ...בפסוק ג\'... | [פסוק:14] ...פסוק יד\'... | פסוק ז\'-ח\'\n'
+    + '   כלל זה חל גם בתגובות, הסברים ורמזים.',
     '3. אל תגיד לתלמיד את רמתו.',
     '4. אל תגיד "אשאל שאלה פשוטה יותר" — פשוט שאל אחת.',
     '5. תשובה נכונה: משפט חיובי קצר ← שאלה הבאה. אם התלמיד ענה **תשובה מפורטת ומעמיקה** מעבר למצופה (לא סתם נכון, אלא הוסיף תובנה, ציטוט מדויק, או קישור) — הוסף [מדהים] בתחילת המשוב.',
@@ -1375,6 +1388,12 @@ function addAIMessage(text) {
   var verseMatch = text.match(/\[פסוק:(\d+)\]/);
   var verseNum = verseMatch ? parseInt(verseMatch[1]) : null;
 
+  // Fallback: AI incorrectly used Hebrew letters in tag like [פסוק:ז] — convert to number
+  if (!verseNum) {
+    var hebrewTagMatch = text.match(/\[פסוק:([\u05D0-\u05EA\u05F3]+)\]/);
+    if (hebrewTagMatch) verseNum = fromHebrewLetter(hebrewTagMatch[1].replace(/'/g,''));
+  }
+
   // Fallback: AI wrote "פסוק 3" without the tag — detect and highlight
   if (!verseNum) {
     var arabicMatch = text.match(/פסוק[ים]?\s+(\d+)/);
@@ -1405,8 +1424,8 @@ function addAIMessage(text) {
   // Check for quiz
   if(text.includes('[בוחן]')) { parseAndShowQuiz(text); return; }
   // Strip system tags
-  var clean = text.replace(/\[פסוק:\d+\]/g,'').replace(/\[סיום\]/g,'').replace(/\[מדהים\]/g,'').trim();
-  // Replace any Arabic verse numbers that slipped through → Hebrew letters
+  // Strip system tags (including Hebrew-letter variants like [פסוק:ז])
+  var clean = text.replace(/\[פסוק:[\d\u05D0-\u05EA\u05F3-]+\]/g,'').replace(/\[סיום\]/g,'').replace(/\[מדהים\]/g,'').trim();
   clean = clean.replace(/בפסוק\s+(\d+)/g, function(_, n) { return 'בפסוק ' + toHebrewLetter(parseInt(n)) + "'"; });
   clean = clean.replace(/פסוקים\s+(\d+)[–\-](\d+)/g, function(_, a, b) { return 'פסוקים ' + toHebrewLetter(parseInt(a)) + "'-" + toHebrewLetter(parseInt(b)) + "'"; });
   clean = clean.replace(/פסוק\s+(\d+)/g, function(_, n) { return 'פסוק ' + toHebrewLetter(parseInt(n)) + "'"; });
@@ -1493,11 +1512,15 @@ function renderAllMessages() {
   var lastVerseNum = null;
   APP.messages.forEach(function(m) {
     if(m.role==='assistant') {
-      // Extract verse number before stripping tag
+      // Extract verse number before stripping tag (handle Hebrew-letter tags too)
       var vm = m.content.match(/\[פסוק:(\d+)\]/);
       var vn = vm ? parseInt(vm[1]) : null;
+      if (!vn) {
+        var vmHe = m.content.match(/\[פסוק:([\u05D0-\u05EA\u05F3]+)\]/);
+        if (vmHe) vn = fromHebrewLetter(vmHe[1].replace(/'/g,''));
+      }
       if(vn) lastVerseNum = vn;
-      var clean = m.content.replace(/\[פסוק:\d+\]/g,'').replace(/\[סיום\]/g,'').replace(/\[מדהים\]/g,'').trim();
+      var clean = m.content.replace(/\[פסוק:[\d\u05D0-\u05EA\u05F3-]+\]/g,'').replace(/\[סיום\]/g,'').replace(/\[מדהים\]/g,'').trim();
       // Arabic → Hebrew conversion
       clean = clean.replace(/בפסוק\s+(\d+)/g, function(_,n){ return 'בפסוק '+toHebrewLetter(parseInt(n))+"'"; });
       clean = clean.replace(/פסוקים\s+(\d+)[–\-](\d+)/g, function(_,a,b){ return 'פסוקים '+toHebrewLetter(parseInt(a))+"'-"+toHebrewLetter(parseInt(b))+"'"; });
