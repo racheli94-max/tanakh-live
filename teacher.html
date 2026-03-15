@@ -281,6 +281,56 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
   border-radius:var(--radius);font-family:'Heebo',sans-serif;font-size:14px;
   background:rgba(255,252,240,.8);direction:rtl;outline:none;}
 .roster-add-row input:focus{border-color:var(--gold);}
+/* Folder styles */
+.folder-group{margin-bottom:14px;border:1.5px solid var(--border-gold);border-radius:12px;overflow:hidden;}
+.folder-header{display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(135deg,rgba(196,154,34,.12),rgba(196,154,34,.06));cursor:pointer;user-select:none;}
+.folder-header:hover{background:rgba(196,154,34,.18);}
+.folder-name{font-family:'Frank Ruhl Libre',serif;font-size:15px;font-weight:700;color:var(--brown-deep);flex:1;}
+.folder-arrow{font-size:11px;color:var(--text-light);transition:transform .2s;}
+.folder-arrow.open{transform:rotate(180deg);}
+.folder-body{display:none;padding:0 8px 8px;}
+.folder-body.open{display:block;}
+.folder-chapter-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,252,240,.8);margin-top:6px;border:1px solid var(--border);}
+.folder-chapter-item.hidden-ch{opacity:.45;}
+.folder-chapter-drag{cursor:grab;color:var(--text-light);font-size:16px;padding:0 2px;}
+.folder-chapter-title{font-size:14px;color:var(--brown-deep);font-weight:500;}
+.folder-chapter-meta{font-size:11px;color:var(--text-light);}
+.folder-chapter-info{flex:1;min-width:0;}
+.folder-chapter-actions{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.vis-btn{background:none;border:none;cursor:pointer;font-size:16px;padding:2px 4px;opacity:.7;}
+.vis-btn:hover{opacity:1;}
+.no-folder-chapters{font-size:13px;color:var(--text-light);padding:10px;text-align:center;}
+
+/* Note modal */
+.note-modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,12,2,.75);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.note-modal-overlay.open{display:flex;}
+.note-modal-box{background:linear-gradient(160deg,#fffbee,#f5e8c4);border:2px solid var(--border-gold);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(40,15,0,.4);direction:rtl;}
+.note-bank-section{margin-bottom:16px;}
+.note-bank-title{font-size:13px;font-weight:700;color:var(--brown-primary);margin-bottom:8px;}
+.note-bank-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.note-chip{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;}
+.note-chip.positive{background:rgba(45,110,58,.1);color:#1e5c2a;border-color:rgba(45,110,58,.3);}
+.note-chip.positive:hover{background:rgba(45,110,58,.22);}
+.note-chip.negative{background:rgba(139,26,26,.1);color:var(--danger);border-color:rgba(139,26,26,.3);}
+.note-chip.negative:hover{background:rgba(139,26,26,.22);}
+.note-textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border-gold);border-radius:var(--radius);font-family:'Heebo',sans-serif;font-size:14px;resize:vertical;min-height:80px;background:rgba(255,252,240,.9);direction:rtl;outline:none;}
+.note-textarea:focus{border-color:var(--gold);}
+
+/* Score filter */
+.score-filter-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(196,154,34,.07);border-radius:8px;margin-top:6px;}
+.score-filter-row label{font-size:12px;color:var(--text-medium);white-space:nowrap;}
+.score-filter-row input[type=range]{flex:1;accent-color:var(--gold-deep);}
+.score-filter-val{font-size:12px;font-weight:700;color:var(--brown-primary);min-width:40px;text-align:center;}
+
+/* Multi-class switcher */
+.class-switcher{display:flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(255,252,240,.15);border-radius:8px;border:1px solid rgba(232,200,112,.3);}
+.class-switcher select{background:transparent;border:none;color:rgba(232,200,112,.9);font-size:13px;font-weight:600;cursor:pointer;outline:none;}
+.class-switcher select option{background:#2d5a54;color:#fff;}
+.class-add-btn{background:none;border:1px solid rgba(232,200,112,.4);color:rgba(232,200,112,.8);border-radius:6px;padding:3px 8px;font-size:12px;cursor:pointer;}
+.class-add-btn:hover{background:rgba(232,200,112,.15);}
+
+/* Time badge */
+.time-spent-badge{font-size:10px;color:var(--text-light);background:rgba(0,0,0,.05);border-radius:4px;padding:1px 5px;}
 </style>
 
   <!-- Service Worker -->
