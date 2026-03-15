@@ -1172,9 +1172,10 @@ function buildSystemPrompt() {
   var allNums = []; for (var vi=1; vi<=total; vi++) allNums.push(vi);
   var notCovered = allNums.filter(function(n){ return !seen[n]; });
   var verseStatus = total > 0
-    ? ('פסוקים בפרק: ' + total +
-       '\nנשאלו: ' + (coveredNums.length ? coveredNums.join(',') : 'אין עדיין') +
-       '\nעוד לא נשאלו: ' + (notCovered.length ? notCovered.join(',') : 'כולם כוסו ✓'))
+    ? ('## סטטוס כיסוי פסוקים — חובה לפעול לפיו\n'
+       + 'סה"כ פסוקים בפרק: ' + total + '\n'
+       + 'נשאלו עד כה: ' + (coveredNums.length ? coveredNums.join(', ') : 'אין עדיין') + '\n'
+       + 'עוד לא נשאלו: ' + (notCovered.length ? notCovered.join(', ') + ' ← חובה לכסות לפני [סיום]' : 'כולם כוסו ✓ — מותר לכתוב [סיום]+[בוחן]'))
     : '';
 
   // Build student profile context
@@ -1220,24 +1221,30 @@ function buildSystemPrompt() {
     '6. תשובה שגויה: תיקון קצר ← שאלה פשוטה יותר באותו נושא.',
     '7. "אני לא יודע": הסבר את התשובה במשפט קצר, ואז שאל שוב **אותה שאלה בדיוק** בצורת רב-ברירה פשוטה עם 4 אפשרויות. אל תעבור לנושא הבא.',
     '8. "רמז": רמז אחד ברור.',
-    '9. **חובה — כסה כל פסוק לפי הסדר:**\n'
-    + '   א) שאל שאלה על פסוק N.\n'
-    + '   ב) **אל תעבור לפסוק N+1 עד שהתלמיד ענה תשובה נכונה על פסוק N.**\n'
-    + '   ג) תשובה שגויה = שאל שוב על אותו פסוק (פשוט יותר). תשובת "אני לא יודע" = הסבר + רב-ברירה על אותו פסוק.\n'
-    + '   ד) רק אחרי תשובה נכונה — קדם לפסוק הבא.',
+    '9. **כיסוי פסוקים — כלל ברזל מוחלט:**\n'
+    + '   א) עבור על הפסוקים לפי הסדר: פסוק א׳, אחר כך ב׳, אחר כך ג׳ וכן הלאה.\n'
+    + '   ב) על כל פסוק — שאל שאלה אחת. **אסור לדלג על פסוק.**\n'
+    + '   ג) **אל תעבור לפסוק N+1 עד שהתלמיד ענה תשובה נכונה על פסוק N.**\n'
+    + '   ד) תשובה שגויה = שאל שוב על אותו פסוק בניסוח פשוט יותר.\n'
+    + '   ה) "אני לא יודע" = הסבר את הפסוק ← שאל את אותה שאלה כרב-ברירה עם 4 אפשרויות.\n'
+    + '   ו) **ספירת פסוקים: בסטטוס "עוד לא נשאלו" — כולם חייבים לעבור לעמודת "נשאלו" לפני שמסיימים.**',
 
-    '10. **לא לסיים לפני שעברת על כל הפסוקים.** כתוב [סיום] רק אחרי שכל הפסוקים מופיעים ב"נשאלו".\n'
-    + '    **חובה:** מיד אחרי [סיום] חייב לבוא [בוחן] — לעולם אל תסיים בלי לכלול את הבוחן.\n'
-    + '    **אסור לחלוטין:** לרמוז, לציין או לדבר על פרק אחר. אנחנו לומדים פרק זה בלבד.',
+    '10. **[סיום] ו-[בוחן] — חוקים קריטיים:**\n'
+    + '   א) **בדוק את רשימת "עוד לא נשאלו" בסטטוס.** אם הרשימה אינה ריקה — אסור לכתוב [סיום]. המשך לפסוק הבא ברשימה.\n'
+    + '   ב) רק כשהרשימה "עוד לא נשאלו" ריקה לחלוטין (כולם כוסו ✓) — כתוב [סיום].\n'
+    + '   ג) **[סיום] ו-[בוחן] חייבים להופיע באותה הודעה בדיוק, ביחד, ללא יוצא מן הכלל.**\n'
+    + '   ד) לעולם אל תכתוב [סיום] בלי [בוחן] אחריו מיד — שניהם יחד או לא כלום.\n'
+    + '   ה) אסור לרמוז על סיום, לומר "עוד מעט נסיים", או לדבר על פרק אחר.',
 
-    '11. בסיום [סיום]: הכן בוחן אמריקאי — 5 שאלות רב-ברירה על עיקרי הפרק. פרמט מדויק:',
-    '    [בוחן]',
-    '    1. שאלה? א) ... ב) ... ג) ... ד) ...',
-    '    2. שאלה? א) ... ב) ... ג) ... ד) ...',
-    '    3. שאלה? א) ... ב) ... ג) ... ד) ...',
-    '    4. שאלה? א) ... ב) ... ג) ... ד) ...',
-    '    5. שאלה? א) ... ב) ... ג) ... ד) ...',
-    '    [תשובות]:1-X,2-X,3-X,4-X,5-X  (X = האות הנכונה)',
+    '11. **פורמט [בוחן] מדויק — חובה לשמור בדיוק:**\n'
+    + '   [סיום]\n'
+    + '   [בוחן]\n'
+    + '   1. שאלה? א) ... ב) ... ג) ... ד) ...\n'
+    + '   2. שאלה? א) ... ב) ... ג) ... ד) ...\n'
+    + '   3. שאלה? א) ... ב) ... ג) ... ד) ...\n'
+    + '   4. שאלה? א) ... ב) ... ג) ... ד) ...\n'
+    + '   5. שאלה? א) ... ב) ... ג) ... ד) ...\n'
+    + '   [תשובות]:1-X,2-X,3-X,4-X,5-X',
     '12. מונחים מקצועיים (ריבוי פעלים, מילה מנחה, ניגוד וכו\') — שאל תחילה מה הם.',
     '13. **פרשנים:** כשאתה שואל על פרשן מסוים (רש"י, רמב"ן, אבן עזרא וכד\') — '
     + 'חובה לצטט את לשון הפירוש המלא ולא לסכם אותו. '
@@ -1279,17 +1286,41 @@ window.sendUserMessage = async function() {
       APP.wrongAnswerCount = (APP.wrongAnswerCount||0)+1;
     }
     if(reply.includes('[סיום]') && APP.progress >= 100) {
-      // If [סיום] came without [בוחן], ask AI for the quiz
+      // If [סיום] came without [בוחן], request the quiz explicitly
       if(!reply.includes('[בוחן]')) {
         setWaiting(true);
         try {
-          var quizReply = await callGemini(APP.messages);
+          var quizMsg = {role:'user', content:'כתוב את הבוחן עכשיו בפורמט המדויק: [בוחן] ואחריו 5 שאלות ו-[תשובות]'};
+          var msgs = APP.messages.concat([quizMsg]);
+          var quizReply = await callGemini(msgs);
           addAIMessage(quizReply);
         } catch(e) { addAIMessage('שגיאה: '+e.message); }
         setWaiting(false);
       }
     } else if(reply.includes('[סיום]') && APP.progress < 100) {
-      // Not done yet — AI tried to finish early, ignore [סיום]
+      // AI tried to finish early — strip [סיום]/[בוחן] and redirect back
+      var stripped = reply.replace(/\[סיום\]/g,'').replace(/\[בוחן\][\s\S]*/,'').trim();
+      if(stripped) addAIMessage(stripped);
+      // Inject system correction
+      var remaining = [];
+      var seenNums = {};
+      APP.messages.forEach(function(m) {
+        if(m.role==='assistant') {
+          var ms = m.content.match(/\[פסוק:(\d+)\]/g);
+          if(ms) ms.forEach(function(v){ seenNums[parseInt(v.replace(/\D/g,''))]=true; });
+        }
+      });
+      for(var vi=1; vi<=APP.totalVerses; vi++) { if(!seenNums[vi]) remaining.push(vi); }
+      var nextVerse = remaining[0];
+      if(nextVerse) {
+        setWaiting(true);
+        try {
+          var redirectMsg = {role:'user', content:'המשך — עדיין נשארו פסוקים לכסות. הפסוק הבא: '+nextVerse+'.'};
+          var redirectReply = await callGemini(APP.messages.concat([redirectMsg]));
+          addAIMessage(redirectReply);
+        } catch(e) { /* silent */ }
+        setWaiting(false);
+      }
     }
   } catch(e) { addAIMessage('שגיאה: '+e.message+'. נסה שוב.'); }
   setWaiting(false);
