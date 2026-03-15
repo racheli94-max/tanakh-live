@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ממשק המנהל — תנ"ך</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --parchment:       #f7f0e0;
+  --parchment-mid:   #ede2c8;
+  --brown-deep:      #4a2008;
+  --brown-primary:   #7b3b0a;
+  --brown-medium:    #a0522d;
+  --gold-deep:       #9a6e10;
+  --gold:            #c49a22;
+  --gold-light:      #e8c870;
+  --gold-faint:      #f3e4b0;
+  --text-dark:       #2c1508;
+  --text-medium:     #5c3010;
+  --text-light:      #8b5a2b;
+  --border:          rgba(139,69,19,0.28);
+  --border-gold:     rgba(196,154,34,0.45);
+  --shadow-warm:     rgba(60,30,10,0.12);
+  --success:         #3a7c2a;
+  --success-bg:      rgba(74,124,58,0.12);
+  --danger:          #8b1a1a;
+  --danger-bg:       rgba(139,26,26,0.10);
+  --radius:          10px;
+  --radius-lg:       18px;
+}
+*, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+
+body {
+  font-family: 'Heebo', sans-serif;
+  background: var(--parchment);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(196,154,34,0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 90%, rgba(139,69,19,0.07) 0%, transparent 60%);
+  color: var(--text-dark); direction: rtl; min-height: 100vh;
+}
+h1,h2,h3,h4 { font-family: 'Frank Ruhl Libre', serif; }
+
+/* Form */
+.form-group { margin-bottom: 14px; }
+.form-group label { display:block; font-size:13px; font-weight:600; color:var(--brown-primary); margin-bottom:6px; }
+.form-group input, .form-group select {
+  width:100%; padding:10px 13px; border:1.5px solid var(--border); border-radius:var(--radius);
+  background:rgba(255,252,240,0.85); font-family:'Heebo',sans-serif; font-size:14px;
+  color:var(--text-dark); direction:rtl; outline:none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-group input:focus, .form-group select:focus {
+  border-color:var(--gold); box-shadow:0 0 0 3px rgba(196,154,34,0.14);
+}
+
+.btn-primary {
+  padding:10px 22px; background:linear-gradient(135deg,var(--brown-primary),var(--brown-deep));
+  color:var(--gold-light); border:none; border-radius:var(--radius);
+  font-family:'Frank Ruhl Libre',serif; font-size:15px; font-weight:700; cursor:pointer;
+  transition:all .2s; box-shadow:0 4px 14px rgba(60,20,0,0.24); letter-spacing:.3px;
+}
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(60,20,0,0.3); }
+
+.btn-danger {
+  padding:7px 14px; background:rgba(139,26,26,0.1);
+  color:var(--danger); border:1.5px solid rgba(139,26,26,0.35);
+  border-radius:var(--radius); font-family:'Heebo',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition:all .2s;
+}
+.btn-danger:hover { background:rgba(139,26,26,0.18); }
+
+.btn-warning {
+  padding:7px 14px; background:rgba(139,69,19,0.1);
+  color:var(--brown-primary); border:1.5px solid var(--border-gold);
+  border-radius:var(--radius); font-family:'Heebo',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition:all .2s;
+}
+.btn-warning:hover { background:var(--gold-faint); }
+
+.ornament { text-align:center; color:var(--gold); font-size:13px; letter-spacing:6px; opacity:.6; padding:4px 0; }
+.divider  { border:none; border-top:1px solid var(--border-gold); margin:16px 0; }
+.error-msg {
+  background:var(--danger-bg); border:1px solid rgba(139,26,26,0.3);
+  border-radius:8px; color:var(--danger); font-size:13px;
+  padding:9px 13px; margin-top:10px; display:none;
+}
+.success-msg {
+  background:var(--success-bg); border:1px solid rgba(74,124,58,0.35);
+  border-radius:8px; color:var(--success); font-size:13px;
+  padding:9px 13px; margin-top:10px; display:none;
+}
+
+/* Login */
+#loginScreen {
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.login-box {
+  background:linear-gradient(160deg,rgba(255,252,240,.95) 0%,rgba(240,228,196,.92) 100%);
+  border:2px solid var(--border-gold); border-radius:var(--radius-lg);
+  padding:42px 40px 34px; width:100%; max-width:400px;
+  box-shadow:0 8px 40px var(--shadow-warm); text-align:center;
+}
+.login-emblem { font-size:46px; margin-bottom:8px; }
+.login-title  { font-size:25px; font-weight:700; color:var(--brown-deep); margin-bottom:4px; }
+.login-sub    { font-size:13px; color:var(--text-light); margin-bottom:26px; }
+
+/* Loading */
+#loadingScreen {
+  min-height:100vh; display:none; flex-direction:column;
+  align-items:center; justify-content:center; gap:18px;
+}
+.spinner {
+  width:42px; height:42px; border:4px solid var(--border-gold);
+  border-top-color:var(--gold); border-radius:50%; animation:spin .9s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* Admin panel */
+#adminScreen { display:none; }
+
+.admin-topbar {
+  background:linear-gradient(90deg,var(--brown-deep) 0%,var(--brown-primary) 60%,var(--brown-medium) 100%);
+  padding:12px 28px; display:flex; align-items:center; justify-content:space-between;
+  border-bottom:2px solid var(--gold-deep); box-shadow:0 2px 12px rgba(40,15,0,.3);
+}
+.admin-logo   { font-family:'Frank Ruhl Libre',serif; font-size:20px; color:var(--gold-light); font-weight:700; }
+.admin-logout {
+  padding:6px 14px; background:rgba(255,252,240,.12); color:var(--gold-light);
+  border:1px solid rgba(232,200,112,.3); border-radius:8px;
+  font-family:'Heebo',sans-serif; font-size:13px; cursor:pointer; transition:all .2s;
+}
+.admin-logout:hover { background:rgba(255,252,240,.22); }
+
+.admin-content { padding:30px 28px; max-width:900px; margin:0 auto; }
+
+/* Section card */
+.section-card {
+  background:linear-gradient(160deg,rgba(255,252,240,.95) 0%,rgba(244,232,204,.88) 100%);
+  border:1.5px solid var(--border-gold); border-radius:var(--radius-lg);
+  padding:26px 26px; margin-bottom:22px;
+  box-shadow:0 3px 18px var(--shadow-warm);
+}
+.section-title {
+  font-family:'Frank Ruhl Libre',serif; font-size:20px; color:var(--brown-primary);
+  margin-bottom:18px; display:flex; align-items:center; gap:9px;
+}
+
+/* Classes table */
+.classes-table { width:100%; border-collapse:collapse; }
+.classes-table th, .classes-table td {
+  padding:10px 14px; text-align:right; font-size:14px;
+  border-bottom:1px solid var(--border);
+}
+.classes-table th {
+  font-weight:700; color:var(--brown-primary);
+  background:rgba(196,154,34,.06);
+  font-family:'Frank Ruhl Libre',serif; font-size:13px;
+}
+.classes-table tr:last-child td { border-bottom:none; }
+.classes-table tr:hover td { background:rgba(196,154,34,.05); }
+
+.class-code-cell {
+  font-family:'Frank Ruhl Libre',serif; font-size:16px; font-weight:700; color:var(--brown-primary);
+  background:rgba(196,154,34,.1); padding:4px 10px; border-radius:6px;
+  border:1px solid rgba(196,154,34,.25); display:inline-block;
+}
+.actions-cell { display:flex; gap:8px; align-items:center; }
+.no-classes {
+  text-align:center; padding:30px; color:var(--text-light);
+  font-style:italic; font-size:14px;
+}
+
+/* Stats badge */
+.students-count {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:12px; color:var(--text-light);
+}
+
+/* Confirm modal */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(30,12,2,.72); align-items:center; justify-content:center;
+  z-index:200; backdrop-filter:blur(3px);
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:linear-gradient(160deg,#fff8e8 0%,#f0e0b8 100%);
+  border:1.5px solid var(--border-gold); border-radius:var(--radius-lg);
+  padding:32px 30px; max-width:400px; width:90%; text-align:center;
+  box-shadow:0 14px 50px rgba(40,15,0,.35);
+}
+.modal-title { font-size:20px; color:var(--brown-deep); margin-bottom:10px; }
+.modal-text  { font-size:14px; color:var(--text-medium); margin-bottom:22px; line-height:1.6; }
+.modal-actions { display:flex; gap:10px; justify-content:center; }
+.modal-cancel {
+  padding:9px 20px; border-radius:8px; border:1.5px solid var(--border);
+  background:rgba(255,252,240,.7); font-family:'Heebo',sans-serif; font-size:14px;
+  color:var(--text-medium); cursor:pointer; transition:all .2s;
+}
+.modal-cancel:hover { background:var(--gold-faint); }
+
+/* Toast */
+.toast {
+  position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:var(--brown-deep); color:var(--gold-faint); padding:11px 22px;
+  border-radius:var(--radius); font-size:13.5px; font-weight:500;
+  box-shadow:0 4px 20px rgba(30,10,0,.35); transition:transform .3s ease;
+  z-index:300;
+}
+.toast.visible { transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-emblem">🛡️</div>
+    <h1 class="login-title">ממשק המנהל</h1>
+    <p class="login-sub">כניסה מנהלת בלבד</p>
+    <div class="ornament">✦ ✦ ✦</div>
+    <div class="divider"></div>
+
+    <div class="form-group">
+      <label for="adminPass">סיסמת מנהל</label>
+      <input type="password" id="adminPass" placeholder="סיסמה"
+             onkeydown="if(event.key==='Enter') window.doAdminLogin()"
+             oninput="window.clearAdminError()">
+    </div>
+    <button class="btn-primary" style="width:100%" onclick="window.doAdminLogin()">כניסה</button>
+    <div class="error-msg" id="adminError"></div>
+  </div>
+</div>
+
+<!-- ===== LOADING ===== -->
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <p style="font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-primary)">טוען...</p>
+</div>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div id="adminScreen">
+
+  <div class="admin-topbar">
+    <div class="admin-logo">🛡️ ממשק המנהל — תנ"ך</div>
+    <button class="admin-logout" onclick="window.doAdminLogout()">יציאה</button>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- Add Teacher / Class -->
+    <div class="section-card">
+      <div class="section-title">➕ הוספת מורה / כיתה חדשה</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+        <div class="form-group" style="margin-bottom:0">
+          <label for="newCode">קוד כיתה</label>
+          <input type="text" id="newCode" placeholder="למשל: class1"
+                 oninput="this.value=this.value.replace(/[.#$/[]]/g,'')">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label for="newTeacher">שם המורה</label>
+          <input type="text" id="newTeacher" placeholder='שם מלא'>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label for="newPassword">סיסמה</label>
+          <input type="password" id="newPassword" placeholder="בחר סיסמה">
+        </div>
+      </div>
+
+      <div style="margin-top:14px;display:flex;align-items:center;gap:12px;">
+        <button class="btn-primary" onclick="window.addTeacher()">הוסף כיתה</button>
+        <div class="error-msg"  id="addError"   style="margin:0;display:none;flex:1;padding:8px 12px;"></div>
+        <div class="success-msg" id="addSuccess" style="margin:0;display:none;flex:1;padding:8px 12px;"></div>
+      </div>
+    </div>
+
+    <!-- Classes list -->
+    <div class="section-card">
+      <div class="section-title">🏫 כיתות קיימות</div>
+      <div id="classesList">
+        <div class="no-classes">טוען כיתות...</div>
+      </div>
+    </div>
+
+    <!-- Change admin password -->
+    <div class="section-card">
+      <div class="section-title">🔑 שינוי סיסמת מנהל</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end;">
+        <div class="form-group" style="margin-bottom:0">
+          <label for="newAdminPass1">סיסמה חדשה</label>
+          <input type="password" id="newAdminPass1" placeholder="הכנס סיסמה חדשה">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label for="newAdminPass2">אימות סיסמה</label>
+          <input type="password" id="newAdminPass2" placeholder="הכנס שוב"
+                 onkeydown="if(event.key==='Enter') window.changeAdminPass()">
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:12px;">
+        <button class="btn-primary" onclick="window.changeAdminPass()">שנה סיסמה</button>
+        <div class="error-msg"   id="passChangeError"   style="margin:0;display:none;flex:1;padding:8px 12px;"></div>
+        <div class="success-msg" id="passChangeSuccess" style="margin:0;display:none;flex:1;padding:8px 12px;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Change Teacher Password Modal -->
+<div class="modal-overlay" id="passModal">
+  <div class="modal-box">
+    <div class="modal-title">🔑 שינוי סיסמת מורה</div>
+    <div style="text-align:right;margin-bottom:16px;">
+      <div class="form-group">
+        <label>כיתה</label>
+        <input type="text" id="passModalCode" disabled style="opacity:0.6;cursor:not-allowed;">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>סיסמה חדשה</label>
+        <input type="text" id="passModalNew" placeholder="הכנס סיסמה חדשה"
+               onkeydown="if(event.key==='Enter') window.savePass()">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="window.closePassModal()">ביטול</button>
+      <button class="btn-primary" onclick="window.savePass()" style="font-size:14px;padding:9px 20px;">שמור סיסמה</button>
+    </div>
+    <div class="error-msg" id="passModalError" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ עריכת כיתה</div>
+    <div style="text-align:right;margin-bottom:16px;">
+      <div class="form-group">
+        <label>קוד כיתה</label>
+        <input type="text" id="editCode" disabled style="opacity:0.6;cursor:not-allowed;">
+      </div>
+      <div class="form-group">
+        <label>שם המורה</label>
+        <input type="text" id="editTeacher" placeholder="שם מלא">
+      </div>
+      <div class="form-group">
+        <label>סיסמה</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="editPassword" placeholder="סיסמה" style="flex:1;">
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="window.closeEditModal()">ביטול</button>
+      <button class="btn-primary" onclick="window.saveEdit()" style="font-size:14px;padding:9px 20px;">שמור</button>
+    </div>
+    <div class="error-msg" id="editError" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- API Key Modal -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal-box">
+    <div class="modal-title">🔌 מפתח Gemini API</div>
+    <div style="text-align:right;margin-bottom:16px;">
+      <div class="form-group" style="margin-bottom:8px">
+        <label>כיתה</label>
+        <input type="text" id="apiModalCode" disabled style="opacity:0.6;cursor:not-allowed;">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>מפתח API חדש</label>
+        <input type="text" id="apiModalKey" placeholder="AIzaSy..."
+               onkeydown="if(event.key==='Enter') window.saveApiKey()">
+      </div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:8px;line-height:1.5">
+        המפתח מאוחסן ב-Firebase ומועבר לתלמידים בעת כניסה.
+        ניתן לקבל מפתח בחינם ב-<a href="https://aistudio.google.com" target="_blank" style="color:var(--gold-deep)">aistudio.google.com</a>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="window.closeApiModal()">ביטול</button>
+      <button class="btn-primary" onclick="window.saveApiKey()" style="font-size:14px;padding:9px 20px;">שמור מפתח</button>
+    </div>
+    <div class="error-msg" id="apiModalError" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle">אישור פעולה</div>
+    <div class="modal-text"  id="modalText">האם אתה בטוח?</div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="window.closeModal()">ביטול</button>
+      <button class="btn-danger"   id="modalConfirmBtn" onclick="">אשר</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   ⚠️  Firebase Config
+   ================================================================ */
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyAB_kj4R2BHtcP08rmpOpzPkdHnaQ2cSU0",
+  authDomain:        "tanach-school.firebaseapp.com",
+  databaseURL:       "https://tanach-school-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "tanach-school",
+  storageBucket:     "tanach-school.firebasestorage.app",
+  messagingSenderId: "740768274682",
+  appId:             "1:740768274682:web:fd751a55359377f53b5143"
+};
+
+/* ⚙️ סיסמת מנהל — שנה כאן כדי לעדכן */
+const ADMIN_PASSWORD = "admin123";
+
+/* ================================================================
+   State
+   ================================================================ */
+let AD = {
+  db:         null,
+  loggedIn:   false,
+  classes:    {},
+  classesRef: null,
+  listener:   null,
+};
+
+/* ================================================================
+   Helpers
+   ================================================================ */
+function loadScript(src) {
+  return new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+function showScreen(which) {
+  document.getElementById('loginScreen').style.display   = (which==='login')   ? 'flex'  : 'none';
+  document.getElementById('loadingScreen').style.display = (which==='loading') ? 'flex'  : 'none';
+  document.getElementById('adminScreen').style.display   = (which==='admin')   ? 'block' : 'none';
+}
+
+function showToast(msg, duration) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('visible');
+  setTimeout(function() { t.classList.remove('visible'); }, duration || 3000);
+}
+
+function escapeHtml(str) {
+  return String(str||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ================================================================
+   Firebase init
+   ================================================================ */
+async function initFirebase() {
+  try {
+    await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js');
+    firebase.initializeApp(FIREBASE_CONFIG);
+    AD.db = firebase.database();
+  } catch(e) {
+    alert('שגיאה בהתחברות ל-Firebase.');
+  }
+}
+
+/* ================================================================
+   Login
+   ================================================================ */
+window.clearAdminError = function() {
+  document.getElementById('adminError').style.display = 'none';
+};
+
+window.doAdminLogin = function() {
+  var pass = document.getElementById('adminPass').value;
+  var errEl = document.getElementById('adminError');
+  errEl.style.display = 'none';
+
+  if (!pass) {
+    errEl.textContent = 'אנא הכנס סיסמה'; errEl.style.display = 'block'; return;
+  }
+
+  if (pass !== ADMIN_PASSWORD) {
+    errEl.textContent = 'סיסמה שגויה'; errEl.style.display = 'block'; return;
+  }
+
+  AD.loggedIn = true;
+  showScreen('admin');
+
+  if (AD.db) {
+    listenToClasses();
+  } else {
+    document.getElementById('classesList').innerHTML =
+      '<div class="no-classes" style="color:var(--danger)">' +
+      '⚠️ Firebase לא מוגדר. עדכן את FIREBASE_CONFIG ורענן.' +
+      '</div>';
+  }
+};
+
+window.doAdminLogout = function() {
+  if (AD.listener && AD.classesRef) {
+    AD.classesRef.off('value', AD.listener);
+    AD.listener = null;
+  }
+  AD.loggedIn = false; AD.classes = {};
+  document.getElementById('adminPass').value = '';
+  showScreen('login');
+};
+
+/* ================================================================
+   Classes: listen
+   ================================================================ */
+function listenToClasses() {
+  AD.classesRef = AD.db.ref('classes');
+  AD.listener = AD.classesRef.on('value', function(snap) {
+    AD.classes = snap.val() || {};
+    renderClasses();
+  });
+}
+
+/* ================================================================
+   Render classes table
+   ================================================================ */
+async function renderClasses() {
+  var codes = Object.keys(AD.classes);
+  var listEl = document.getElementById('classesList');
+
+  if (!codes.length) {
+    listEl.innerHTML = '<div class="no-classes">אין כיתות עדיין — הוסף את הראשונה!</div>';
+    return;
+  }
+
+  // For each class, count students
+  var rows = codes.map(function(code) {
+    var cls      = AD.classes[code];
+    var settings = cls.settings || {};
+    var students = cls.students ? Object.keys(cls.students).length : 0;
+    var finished = cls.students ? Object.values(cls.students).filter(function(s){return s.finished;}).length : 0;
+
+    var safeCode = code.replace(/'/g, "\\'");
+    return '<tr>' +
+      '<td><span class="class-code-cell">' + escapeHtml(code) + '</span></td>' +
+      '<td>' + escapeHtml(settings.teacherName || '—') + '</td>' +
+
+      '<td>' +
+        '<span style="font-family:monospace;background:rgba(196,154,34,0.1);padding:2px 8px;border-radius:4px;font-size:13px;">' +
+        escapeHtml(settings.password || '—') + '</span>' +
+      '</td>' +
+      '<td><span class="students-count">👤 ' + students + (finished ? '&nbsp;&nbsp;✓ ' + finished + ' סיימו' : '') + '</span></td>' +
+      '<td>' +
+        (settings.claudeApiKey
+          ? '<span style="color:var(--success);font-size:12px;font-weight:600">✓ מוגדר</span>'
+          : '<span style="color:var(--danger);font-size:12px;">✗ חסר</span>') +
+      '</td>' +
+      '<td>' +
+        '<div class="actions-cell">' +
+          '<button class="btn-secondary" style="font-size:12px;padding:6px 10px;" onclick="window.openEditModal(\'' + safeCode + '\')">✏️ ערוך</button>' +
+          '<button class="btn-secondary" style="font-size:12px;padding:6px 10px;" onclick="window.openPassModal(\'' + safeCode + '\')">🔑 סיסמה</button>' +
+          '<button class="btn-secondary" style="font-size:12px;padding:6px 10px;" onclick="window.openApiModal(\'' + safeCode + '\')">🔌 API</button>' +
+          '<button class="btn-warning" onclick="window.clearStudents(\'' + safeCode + '\')">🗑 נקה</button>' +
+          '<button class="btn-danger"  onclick="window.deleteClass(\'' + safeCode + '\')">מחק</button>' +
+        '</div>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  listEl.innerHTML =
+    '<table class="classes-table">' +
+      '<thead><tr>' +
+        '<th>קוד</th><th>מורה</th><th>סיסמה</th><th>API</th><th>תלמידים</th><th>פעולות</th>' +
+      '</tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+    '</table>';
+}
+
+/* ================================================================
+   Add teacher/class
+   ================================================================ */
+window.addTeacher = async function() {
+  // נקה תווים שאסורים כמפתח Firebase: . # $ / [ ]
+  var code    = document.getElementById('newCode').value.trim().replace(/[.#$\/\[\]]/g, '');
+  var teacher = document.getElementById('newTeacher').value.trim();
+  var pass    = document.getElementById('newPassword').value.trim();
+
+  var errEl = document.getElementById('addError');
+  var sucEl = document.getElementById('addSuccess');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+
+  if (!code)    { errEl.textContent='אנא הכנס קוד כיתה'; errEl.style.display='block'; return; }
+  if (!teacher) { errEl.textContent='אנא הכנס שם מורה';  errEl.style.display='block'; return; }
+  if (!pass)    { errEl.textContent='אנא הכנס סיסמה';    errEl.style.display='block'; return; }
+  if (code.length < 2) { errEl.textContent='קוד כיתה חייב להיות לפחות 2 תווים'; errEl.style.display='block'; return; }
+
+  // Firebase לא מחובר
+  if (!AD.db) {
+    errEl.textContent = 'Firebase לא מוגדר. עדכן את FIREBASE_CONFIG ורענן את הדף.';
+    errEl.style.display = 'block'; return;
+  }
+
+  // Check if exists
+  if (AD.classes[code]) {
+    errEl.textContent = 'קוד כיתה "' + code + '" כבר קיים. בחר קוד אחר.';
+    errEl.style.display = 'block'; return;
+  }
+
+  try {
+    await AD.db.ref('classes/' + code + '/settings').set({
+      teacherName: teacher,
+      password:    pass,
+      book:        '',
+      chapter:     '',
+      summary:     '',
+      claudeApiKey:'',
+      createdAt:   firebase.database.ServerValue.TIMESTAMP,
+    });
+
+    // Clear form
+    document.getElementById('newCode').value    = '';
+    document.getElementById('newTeacher').value = '';
+    document.getElementById('newPassword').value= '';
+
+    sucEl.textContent = '✓ כיתה "' + code + '" נוצרה בהצלחה';
+    sucEl.style.display = 'block';
+    setTimeout(function() { sucEl.style.display='none'; }, 4000);
+    showToast('כיתה ' + code + ' נוצרה!');
+  } catch(e) {
+    errEl.textContent = 'שגיאה: ' + e.message;
+    errEl.style.display = 'block';
+  }
+};
+
+/* ================================================================
+   Change teacher password (quick modal)
+   ================================================================ */
+window.openPassModal = function(code) {
+  document.getElementById('passModalCode').value = code;
+  document.getElementById('passModalNew').value  = '';
+  document.getElementById('passModalError').style.display = 'none';
+  document.getElementById('passModal').classList.add('open');
+  setTimeout(function(){ document.getElementById('passModalNew').focus(); }, 100);
+};
+
+window.closePassModal = function() {
+  document.getElementById('passModal').classList.remove('open');
+};
+
+window.savePass = async function() {
+  var code  = document.getElementById('passModalCode').value;
+  var pass  = document.getElementById('passModalNew').value.trim();
+  var errEl = document.getElementById('passModalError');
+  errEl.style.display = 'none';
+  if (!pass) { errEl.textContent = 'אנא הכנס סיסמה'; errEl.style.display='block'; return; }
+  if (pass.length < 3) { errEl.textContent = 'סיסמה קצרה מדי'; errEl.style.display='block'; return; }
+  try {
+    await AD.db.ref('classes/' + code + '/settings/password').set(pass);
+    window.closePassModal();
+    showToast('✓ סיסמת ' + code.toUpperCase() + ' עודכנה');
+  } catch(e) {
+    errEl.textContent = 'שגיאה: ' + e.message; errEl.style.display='block';
+  }
+};
+
+document.getElementById('passModal').addEventListener('click', function(e){
+  if (e.target === this) window.closePassModal();
+});
+
+/* ================================================================
+   API Key modal
+   ================================================================ */
+window.openApiModal = function(code) {
+  var settings = (AD.classes[code] && AD.classes[code].settings) || {};
+  document.getElementById('apiModalCode').value = code;
+  document.getElementById('apiModalKey').value  = settings.claudeApiKey || '';
+  document.getElementById('apiModalError').style.display = 'none';
+  document.getElementById('apiModal').classList.add('open');
+  setTimeout(function(){ document.getElementById('apiModalKey').focus(); }, 100);
+};
+
+window.closeApiModal = function() {
+  document.getElementById('apiModal').classList.remove('open');
+};
+
+window.saveApiKey = async function() {
+  var code = document.getElementById('apiModalCode').value;
+  var key  = document.getElementById('apiModalKey').value.trim();
+  var errEl = document.getElementById('apiModalError');
+  errEl.style.display = 'none';
+  if (!key) { errEl.textContent = 'אנא הכנס מפתח API'; errEl.style.display='block'; return; }
+  if (!key.startsWith('AIza')) { errEl.textContent = 'מפתח לא תקין — חייב להתחיל ב-AIza'; errEl.style.display='block'; return; }
+  try {
+    await AD.db.ref('classes/' + code + '/settings/claudeApiKey').set(key);
+    window.closeApiModal();
+    showToast('✓ מפתח API עודכן עבור ' + code.toUpperCase());
+  } catch(e) {
+    errEl.textContent = 'שגיאה: ' + e.message; errEl.style.display='block';
+  }
+};
+
+document.getElementById('apiModal').addEventListener('click', function(e){
+  if (e.target === this) window.closeApiModal();
+});
+
+/* ================================================================
+   Edit class password / teacher name
+   ================================================================ */
+window.openEditModal = function(code) {
+  var cls = AD.classes[code];
+  if (!cls) return;
+  var settings = cls.settings || {};
+  document.getElementById('editCode').value     = code;
+  document.getElementById('editTeacher').value  = settings.teacherName || '';
+  document.getElementById('editPassword').value = settings.password || '';
+  document.getElementById('editError').style.display = 'none';
+  document.getElementById('editModal').classList.add('open');
+};
+
+window.closeEditModal = function() {
+  document.getElementById('editModal').classList.remove('open');
+};
+
+window.saveEdit = async function() {
+  var code    = document.getElementById('editCode').value;
+  var teacher = document.getElementById('editTeacher').value.trim();
+  var pass    = document.getElementById('editPassword').value.trim();
+  var errEl   = document.getElementById('editError');
+  errEl.style.display = 'none';
+
+  if (!teacher) { errEl.textContent='אנא הכנס שם מורה'; errEl.style.display='block'; return; }
+  if (!pass)    { errEl.textContent='אנא הכנס סיסמה';   errEl.style.display='block'; return; }
+  if (!AD.db)   { errEl.textContent='Firebase לא מחובר'; errEl.style.display='block'; return; }
+
+  try {
+    await AD.db.ref('classes/' + code + '/settings').update({
+      teacherName: teacher,
+      password:    pass,
+    });
+    window.closeEditModal();
+    showToast('✓ הפרטים עודכנו בהצלחה');
+  } catch(e) {
+    errEl.textContent = 'שגיאה: ' + e.message;
+    errEl.style.display = 'block';
+  }
+};
+
+/* ================================================================
+   Delete class
+   ================================================================ */
+window.deleteClass = function(code) {
+  showConfirmModal(
+    'מחיקת כיתה',
+    'האם אתה בטוח שברצונך למחוק את הכיתה "' + code.toUpperCase() + '"?\nכל הנתונים (תלמידים, הגדרות) יימחקו לצמיתות.',
+    async function() {
+      try {
+        await AD.db.ref('classes/' + code).remove();
+        closeModal();
+        showToast('כיתה ' + code.toUpperCase() + ' נמחקה');
+      } catch(e) {
+        closeModal();
+        showToast('שגיאה במחיקה: ' + e.message);
+      }
+    },
+    'מחק לצמיתות'
+  );
+};
+
+/* ================================================================
+   Clear students
+   ================================================================ */
+window.clearStudents = function(code) {
+  var count = AD.classes[code] && AD.classes[code].students
+    ? Object.keys(AD.classes[code].students).length : 0;
+
+  showConfirmModal(
+    'ניקוי נתוני תלמידים',
+    'האם לנקות את כל ' + count + ' התלמידים מכיתה "' + code.toUpperCase() + '"?\nהגדרות המורה יישמרו. פעולה זו אינה ניתנת לביטול.',
+    async function() {
+      try {
+        await AD.db.ref('classes/' + code + '/students').remove();
+        closeModal();
+        showToast('✓ נתוני תלמידים ב-' + code.toUpperCase() + ' נוקו');
+      } catch(e) {
+        closeModal();
+        showToast('שגיאה: ' + e.message);
+      }
+    },
+    'נקה תלמידים'
+  );
+};
+
+/* ================================================================
+   Confirm modal
+   ================================================================ */
+function showConfirmModal(title, text, onConfirm, confirmLabel) {
+  document.getElementById('modalTitle').textContent    = title;
+  document.getElementById('modalText').textContent     = text;
+  document.getElementById('modalConfirmBtn').textContent = confirmLabel || 'אשר';
+  document.getElementById('modalConfirmBtn').onclick   = onConfirm;
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+window.closeModal = function() {
+  document.getElementById('confirmModal').classList.remove('open');
+};
+
+// Close on backdrop click
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+  if (e.target === this) window.closeModal();
+});
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) window.closeEditModal();
+});
+
+/* ================================================================
+   Change admin password
+   ================================================================ */
+window.changeAdminPass = function() {
+  var p1    = document.getElementById('newAdminPass1').value.trim();
+  var p2    = document.getElementById('newAdminPass2').value.trim();
+  var errEl = document.getElementById('passChangeError');
+  var sucEl = document.getElementById('passChangeSuccess');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+
+  if (!p1)      { errEl.textContent = 'אנא הכנס סיסמה חדשה'; errEl.style.display='block'; return; }
+  if (p1 !== p2){ errEl.textContent = 'הסיסמאות אינן תואמות'; errEl.style.display='block'; return; }
+  if (p1.length < 4){ errEl.textContent = 'הסיסמה חייבת להיות לפחות 4 תווים'; errEl.style.display='block'; return; }
+
+  // Update the constant in memory (affects current session only)
+  // Real persistence: update in Firebase
+  if (AD.db) {
+    AD.db.ref('admin/password').set(p1)
+      .then(function() {
+        sucEl.textContent = '✓ הסיסמה עודכנה בהצלחה';
+        sucEl.style.display = 'block';
+        document.getElementById('newAdminPass1').value = '';
+        document.getElementById('newAdminPass2').value = '';
+        setTimeout(function(){ sucEl.style.display='none'; }, 4000);
+        showToast('סיסמת מנהל עודכנה!');
+      })
+      .catch(function(e) {
+        errEl.textContent = 'שגיאה: ' + e.message; errEl.style.display='block';
+      });
+  } else {
+    // No Firebase — just show note
+    sucEl.textContent = '⚠ אין חיבור Firebase. הסיסמה החדשה תקפה לסשן זה בלבד: ' + p1;
+    sucEl.style.display = 'block';
+    document.getElementById('newAdminPass1').value = '';
+    document.getElementById('newAdminPass2').value = '';
+  }
+};
+
+/* ================================================================
+   Init
+   ================================================================ */
+window.addEventListener('DOMContentLoaded', async function() {
+  await initFirebase();
+  showScreen('login');
+});
+</script>
+</body>
+</html>
