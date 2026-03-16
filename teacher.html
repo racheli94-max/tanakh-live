@@ -1395,11 +1395,15 @@ window.openAddFolder = function() {
 window.saveFolder = async function() {
   var name  = document.getElementById('folderNameInput').value.trim();
   var color = document.getElementById('folderColorInput').value;
-  if(!name) return;
-  await T.db.ref('classes/'+T.classCode+'/folders').push({ name:name, color:color, order:Date.now(), open:true });
-  document.getElementById('folderNameInput').value = '';
-  document.getElementById('folderForm').style.display = 'none';
-  showToast('✓ תיקייה נוצרה');
+  if(!name) { showToast('אנא הכנס שם לתיקייה'); return; }
+  try {
+    await T.db.ref('classes/'+T.classCode+'/folders').push({ name:name, color:color, order:Date.now(), open:true });
+    document.getElementById('folderNameInput').value = '';
+    document.getElementById('folderForm').style.display = 'none';
+    showToast('✓ תיקייה נוצרה: '+name);
+  } catch(e) {
+    showToast('שגיאה ביצירת תיקייה: '+e.message);
+  }
 };
 
 window.toggleFolder = function(fid) {
@@ -1427,15 +1431,35 @@ window.moveChapterToFolder = function(cid, fid) {
 
 window.toggleChapterVisible = function(cid) {
   var ch = T.chapters[cid] || {};
-  T.db.ref('classes/'+T.classCode+'/chapters/'+cid).update({ visible: ch.visible === false ? true : false });
-  showToast(ch.visible === false ? '✓ פרק גלוי לתלמידים' : '✓ פרק מוסתר מתלמידים');
+  var newVisible = ch.visible === false ? true : false;
+  T.db.ref('classes/'+T.classCode+'/chapters/'+cid).update({ visible: newVisible })
+    .then(function(){ showToast(newVisible ? '✓ פרק גלוי לתלמידים' : '✓ פרק מוסתר מתלמידים'); })
+    .catch(function(e){ showToast('שגיאה: '+e.message); });
 };
 
 window.moveChapterOrder = function(cid, dir) {
-  // Simple order bump
   var ch = T.chapters[cid] || {};
-  var newOrder = (ch.order||0) + dir * 10;
-  T.db.ref('classes/'+T.classCode+'/chapters/'+cid).update({ order: newOrder });
+  var fid = ch.folderId || null;
+
+  // Get all chapters in same folder, sorted by order
+  var siblings = Object.keys(T.chapters)
+    .filter(function(id) { return (T.chapters[id].folderId||null) === fid; })
+    .sort(function(a,b){ return (T.chapters[a].order||0)-(T.chapters[b].order||0); });
+
+  var idx = siblings.indexOf(cid);
+  var swapIdx = idx + dir; // dir=-1 means up, dir=1 means down
+  if(swapIdx < 0 || swapIdx >= siblings.length) return;
+
+  var swapId = siblings[swapIdx];
+  var myOrder    = T.chapters[cid].order    || idx * 100;
+  var swapOrder  = T.chapters[swapId].order || swapIdx * 100;
+
+  // Swap orders
+  var updates = {};
+  updates['classes/'+T.classCode+'/chapters/'+cid+'/order']    = swapOrder;
+  updates['classes/'+T.classCode+'/chapters/'+swapId+'/order'] = myOrder;
+  T.db.ref().update(updates)
+    .catch(function(e){ showToast('שגיאה: '+e.message); });
 };
 
 function updateFolderSelect() {
