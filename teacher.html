@@ -489,150 +489,7 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
       </div><!-- end section-card -->
     </div><!-- end pane-chapters -->
 
-    <!-- Chapter Form Modal Overlay -->
-    <div class="chapter-form-overlay" id="chapterFormOverlay">
-      <div class="chapter-form" id="chapterForm">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-          <div style="font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-deep)" id="chapterFormTitle">הוספת פרק</div>
-          <button onclick="window.closeChapterForm()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);padding:4px 8px;">✕</button>
-        </div>
-        <input type="hidden" id="editChapterId">
-        <div class="book-ch-row">
-          <div class="form-group" style="margin-bottom:12px">
-            <label>ספר</label>
-            <select id="formBook">
-              <option value="">— בחר ספר —</option>
-              <option>בראשית</option><option>שמות</option><option>ויקרא</option>
-              <option>במדבר</option><option>דברים</option><option>יהושע</option>
-              <option>שופטים</option><option>שמואל א</option><option>שמואל ב</option>
-              <option>מלכים א</option><option>מלכים ב</option><option>ישעיהו</option>
-              <option>ירמיהו</option><option>יחזקאל</option><option>הושע</option>
-              <option>יואל</option><option>עמוס</option><option>עובדיה</option>
-              <option>יונה</option><option>מיכה</option><option>נחום</option>
-              <option>חבקוק</option><option>צפניה</option><option>חגי</option>
-              <option>זכריה</option><option>מלאכי</option>
-              <option>תהילים</option><option>משלי</option><option>איוב</option>
-              <option>שיר השירים</option><option>רות</option><option>איכה</option>
-              <option>קהלת</option><option>אסתר</option><option>דניאל</option>
-              <option>עזרא</option><option>נחמיה</option>
-              <option>דברי הימים א</option><option>דברי הימים ב</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin-bottom:12px">
-            <label>פרק</label>
-            <select id="formChapter">
-              <option value="">— בחר —</option>
-              <option value="1">א (1)</option>
-              <option value="2">ב (2)</option>
-              <option value="3">ג (3)</option>
-              <option value="4">ד (4)</option>
-              <option value="5">ה (5)</option>
-              <option value="6">ו (6)</option>
-              <option value="7">ז (7)</option>
-              <option value="8">ח (8)</option>
-              <option value="9">ט (9)</option>
-              <option value="10">י (10)</option>
-              <option value="11">יא (11)</option>
-              <option value="12">יב (12)</option>
-              <option value="13">יג (13)</option>
-              <option value="14">יד (14)</option>
-              <option value="15">טו (15)</option>
-              <option value="16">טז (16)</option>
-              <option value="17">יז (17)</option>
-              <option value="18">יח (18)</option>
-              <option value="19">יט (19)</option>
-              <option value="20">כ (20)</option>
-              <option value="21">כא (21)</option>
-              <option value="22">כב (22)</option>
-              <option value="23">כג (23)</option>
-              <option value="24">כד (24)</option>
-              <option value="25">כה (25)</option>
-              <option value="26">כו (26)</option>
-              <option value="27">כז (27)</option>
-              <option value="28">כח (28)</option>
-              <option value="29">כט (29)</option>
-              <option value="30">ל (30)</option>
-              <option value="31">לא (31)</option>
-              <option value="32">לב (32)</option>
-              <option value="33">לג (33)</option>
-              <option value="34">לד (34)</option>
-              <option value="35">לה (35)</option>
-              <option value="36">לו (36)</option>
-              <option value="37">לז (37)</option>
-              <option value="38">לח (38)</option>
-              <option value="39">לט (39)</option>
-              <option value="40">מ (40)</option>
-              <option value="41">מא (41)</option>
-              <option value="42">מב (42)</option>
-              <option value="43">מג (43)</option>
-              <option value="44">מד (44)</option>
-              <option value="45">מה (45)</option>
-              <option value="46">מו (46)</option>
-              <option value="47">מז (47)</option>
-              <option value="48">מח (48)</option>
-              <option value="49">מט (49)</option>
-              <option value="50">נ (50)</option>
-            </select>
-          </div>
-        </div>
-        <!-- Verse range -->
-        <div style="background:rgba(196,154,34,.07);border:1px solid var(--border-gold);border-radius:8px;padding:12px 14px;margin-bottom:14px;">
-          <div style="font-size:13px;font-weight:600;color:var(--brown-primary);margin-bottom:8px;">📌 פסוקים ספציפיים (אופציונלי)</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div class="form-group" style="margin-bottom:0">
-              <label style="font-size:12px">פסוק התחלה</label>
-              <input type="number" id="formVerseFrom" placeholder="1" min="1" max="200"
-                style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;direction:ltr;">
-            </div>
-            <div class="form-group" style="margin-bottom:0">
-              <label style="font-size:12px">פסוק סיום</label>
-              <input type="number" id="formVerseTo" placeholder="סוף הפרק" min="1" max="200"
-                style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;direction:ltr;">
-            </div>
-          </div>
-          <div style="font-size:11px;color:var(--text-light);margin-top:6px;">השאר ריק כדי ללמוד את כל הפרק. לדוגמה: פסוק 1 עד 15.</div>
-        </div>
-        <div class="form-group">
-          <label>כותרת מותאמת (אופציונלי)</label>
-          <input type="text" id="formTitle" placeholder='למשל: "יוסף ואחיו"'>
-        </div>
-        <div class="form-group">
-          <label>תיקייה</label>
-          <select id="formFolder">
-            <option value="">— ללא תיקייה —</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>העלאת קובץ (PDF / Word / מצגת) — הטקסט ייקרא אוטומטית</label>
-          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
-               ondragover="event.preventDefault();this.classList.add('drag-over')"
-               ondragleave="this.classList.remove('drag-over')"
-               ondrop="event.preventDefault();this.classList.remove('drag-over');window.handleFileDrop(event)">
-            <div class="upload-icon">📎</div>
-            <div class="upload-text">לחץ להעלאה או גרור לכאן</div>
-            <div class="upload-sub">PDF · Word (.docx) · מצגת (.pptx)</div>
-            <input type="file" id="fileInput" accept=".pdf,.docx,.pptx"
-                   style="display:none" onchange="window.handleFileSelect(this)">
-          </div>
-          <div class="upload-status" id="uploadStatus" style="display:none"></div>
-        </div>
-        <div class="form-group">
-          <label>סיכום הפרק — אירועים, דמויות, מוסר השכל</label>
-          <textarea id="formSummary" rows="7"
-            placeholder="הכנס כאן את סיכום הפרק — מה קורה בכל פסוק, דמויות מרכזיות, מוסר השכל...&#10;הטקסט ימולא אוטומטית לאחר העלאת קובץ."></textarea>
-        </div>
-        <div class="form-group">
-          <label>אמצעים ספרותיים ופירושים חשובים (אופציונלי)</label>
-          <textarea id="formLiterary" rows="4"
-            placeholder="למשל: מילה מנחה — 'ויקם'; ניגוד בין יצחק לישמעאל; חזרה על מילת 'יחדו'...&#10;המורה האי יתייחס לאלו בשאלות לתלמידים."></textarea>
-        </div>
-        <div class="form-actions">
-          <button class="btn-primary" id="saveChapterBtn" onclick="window.saveChapter()">💾 שמור פרק</button>
-          <button class="btn-secondary" onclick="window.closeChapterForm()">ביטול</button>
-        </div>
-        <div class="error-msg" id="chapterFormError"></div>
-      </div><!-- end chapter-form -->
-    </div><!-- end chapter-form-overlay -->
+
 
   <!-- SETTINGS TAB -->
   <!-- STUDENTS TAB -->
@@ -1294,30 +1151,7 @@ function updateChFilter() {
   });
 }
 
-/* ---- Chapters ---- */
-function renderChaptersList() {
-  var ids=Object.keys(T.chapters);
-  var list=document.getElementById('chaptersList');
-  if(!ids.length){list.innerHTML='<div class="no-chapters">אין פרקים — הוסיפי את הראשון!</div>';return;}
-  list.innerHTML=ids.map(function(cid,i) {
-    var ch=T.chapters[cid];
-    var lbl=ch.title||((ch.book||'?')+' פרק '+(ch.chapter||'?'));
-    var preview=(ch.summary||'').substring(0,120)+((ch.summary||'').length>120?'...':'');
-    var safe=cid.replace(/'/g,"\\'");
-    return '<div class="chapter-card-item">'+
-      '<div class="chapter-num-badge">'+(i+1)+'</div>'+
-      '<div class="chapter-item-info">'+
-        '<div class="chapter-item-title">'+esc(lbl)+'</div>'+
-        '<div class="chapter-item-meta">'+esc(ch.book||'')+(ch.chapter?' · פרק '+ch.chapter:'')+'</div>'+
-        '<div class="chapter-item-preview">'+esc(preview)+'</div>'+
-      '</div>'+
-      '<div class="chapter-item-actions">'+
-        '<button class="btn-secondary" style="font-size:12px;padding:6px 10px" onclick="window.openEditChapter(\''+safe+'\')">✏️ ערוך</button>'+
-        '<button class="btn-danger" onclick="window.deleteChapter(\''+safe+'\')">מחק</button>'+
-      '</div>'+
-    '</div>';
-  }).join('');
-}
+/* ---- Chapters (renderChaptersList defined in Folders section below) ---- */
 
 window.openAddChapter = function() {
   document.getElementById('editChapterId').value='';
@@ -1330,7 +1164,6 @@ window.openAddChapter = function() {
   document.getElementById('formVerseTo').value='';
   document.getElementById('saveChapterBtn').textContent='💾 הוסף פרק';
   document.getElementById('chapterFormError').style.display='none';
-  var f=document.getElementById('chapterForm');
   document.getElementById('chapterFormTitle').textContent = 'הוספת פרק חדש';
   document.getElementById('chapterFormOverlay').classList.add('open');
 };
@@ -1348,7 +1181,6 @@ window.openEditChapter = function(cid) {
   document.getElementById('formFolder').value=ch.folderId||'';
   document.getElementById('saveChapterBtn').textContent='💾 שמור שינויים';
   document.getElementById('chapterFormError').style.display='none';
-  var f=document.getElementById('chapterForm');
   document.getElementById('chapterFormTitle').textContent = 'עריכת פרק';
   document.getElementById('chapterFormOverlay').classList.add('open');
 };
@@ -1869,6 +1701,150 @@ window.addEventListener('DOMContentLoaded',async function(){
 });
 </script>
 
+<!-- Chapter Form Modal Overlay -->
+<div class="chapter-form-overlay" id="chapterFormOverlay">
+      <div class="chapter-form" id="chapterForm">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <div style="font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-deep)" id="chapterFormTitle">הוספת פרק</div>
+          <button onclick="window.closeChapterForm()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);padding:4px 8px;">✕</button>
+        </div>
+        <input type="hidden" id="editChapterId">
+        <div class="book-ch-row">
+          <div class="form-group" style="margin-bottom:12px">
+            <label>ספר</label>
+            <select id="formBook">
+              <option value="">— בחר ספר —</option>
+              <option>בראשית</option><option>שמות</option><option>ויקרא</option>
+              <option>במדבר</option><option>דברים</option><option>יהושע</option>
+              <option>שופטים</option><option>שמואל א</option><option>שמואל ב</option>
+              <option>מלכים א</option><option>מלכים ב</option><option>ישעיהו</option>
+              <option>ירמיהו</option><option>יחזקאל</option><option>הושע</option>
+              <option>יואל</option><option>עמוס</option><option>עובדיה</option>
+              <option>יונה</option><option>מיכה</option><option>נחום</option>
+              <option>חבקוק</option><option>צפניה</option><option>חגי</option>
+              <option>זכריה</option><option>מלאכי</option>
+              <option>תהילים</option><option>משלי</option><option>איוב</option>
+              <option>שיר השירים</option><option>רות</option><option>איכה</option>
+              <option>קהלת</option><option>אסתר</option><option>דניאל</option>
+              <option>עזרא</option><option>נחמיה</option>
+              <option>דברי הימים א</option><option>דברי הימים ב</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>פרק</label>
+            <select id="formChapter">
+              <option value="">— בחר —</option>
+              <option value="1">א (1)</option>
+              <option value="2">ב (2)</option>
+              <option value="3">ג (3)</option>
+              <option value="4">ד (4)</option>
+              <option value="5">ה (5)</option>
+              <option value="6">ו (6)</option>
+              <option value="7">ז (7)</option>
+              <option value="8">ח (8)</option>
+              <option value="9">ט (9)</option>
+              <option value="10">י (10)</option>
+              <option value="11">יא (11)</option>
+              <option value="12">יב (12)</option>
+              <option value="13">יג (13)</option>
+              <option value="14">יד (14)</option>
+              <option value="15">טו (15)</option>
+              <option value="16">טז (16)</option>
+              <option value="17">יז (17)</option>
+              <option value="18">יח (18)</option>
+              <option value="19">יט (19)</option>
+              <option value="20">כ (20)</option>
+              <option value="21">כא (21)</option>
+              <option value="22">כב (22)</option>
+              <option value="23">כג (23)</option>
+              <option value="24">כד (24)</option>
+              <option value="25">כה (25)</option>
+              <option value="26">כו (26)</option>
+              <option value="27">כז (27)</option>
+              <option value="28">כח (28)</option>
+              <option value="29">כט (29)</option>
+              <option value="30">ל (30)</option>
+              <option value="31">לא (31)</option>
+              <option value="32">לב (32)</option>
+              <option value="33">לג (33)</option>
+              <option value="34">לד (34)</option>
+              <option value="35">לה (35)</option>
+              <option value="36">לו (36)</option>
+              <option value="37">לז (37)</option>
+              <option value="38">לח (38)</option>
+              <option value="39">לט (39)</option>
+              <option value="40">מ (40)</option>
+              <option value="41">מא (41)</option>
+              <option value="42">מב (42)</option>
+              <option value="43">מג (43)</option>
+              <option value="44">מד (44)</option>
+              <option value="45">מה (45)</option>
+              <option value="46">מו (46)</option>
+              <option value="47">מז (47)</option>
+              <option value="48">מח (48)</option>
+              <option value="49">מט (49)</option>
+              <option value="50">נ (50)</option>
+            </select>
+          </div>
+        </div>
+        <!-- Verse range -->
+        <div style="background:rgba(196,154,34,.07);border:1px solid var(--border-gold);border-radius:8px;padding:12px 14px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:600;color:var(--brown-primary);margin-bottom:8px;">📌 פסוקים ספציפיים (אופציונלי)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-group" style="margin-bottom:0">
+              <label style="font-size:12px">פסוק התחלה</label>
+              <input type="number" id="formVerseFrom" placeholder="1" min="1" max="200"
+                style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;direction:ltr;">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label style="font-size:12px">פסוק סיום</label>
+              <input type="number" id="formVerseTo" placeholder="סוף הפרק" min="1" max="200"
+                style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;direction:ltr;">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:6px;">השאר ריק כדי ללמוד את כל הפרק. לדוגמה: פסוק 1 עד 15.</div>
+        </div>
+        <div class="form-group">
+          <label>כותרת מותאמת (אופציונלי)</label>
+          <input type="text" id="formTitle" placeholder='למשל: "יוסף ואחיו"'>
+        </div>
+        <div class="form-group">
+          <label>תיקייה</label>
+          <select id="formFolder">
+            <option value="">— ללא תיקייה —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>העלאת קובץ (PDF / Word / מצגת) — הטקסט ייקרא אוטומטית</label>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+               ondragover="event.preventDefault();this.classList.add('drag-over')"
+               ondragleave="this.classList.remove('drag-over')"
+               ondrop="event.preventDefault();this.classList.remove('drag-over');window.handleFileDrop(event)">
+            <div class="upload-icon">📎</div>
+            <div class="upload-text">לחץ להעלאה או גרור לכאן</div>
+            <div class="upload-sub">PDF · Word (.docx) · מצגת (.pptx)</div>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.pptx"
+                   style="display:none" onchange="window.handleFileSelect(this)">
+          </div>
+          <div class="upload-status" id="uploadStatus" style="display:none"></div>
+        </div>
+        <div class="form-group">
+          <label>סיכום הפרק — אירועים, דמויות, מוסר השכל</label>
+          <textarea id="formSummary" rows="7"
+            placeholder="הכנס כאן את סיכום הפרק — מה קורה בכל פסוק, דמויות מרכזיות, מוסר השכל...&#10;הטקסט ימולא אוטומטית לאחר העלאת קובץ."></textarea>
+        </div>
+        <div class="form-group">
+          <label>אמצעים ספרותיים ופירושים חשובים (אופציונלי)</label>
+          <textarea id="formLiterary" rows="4"
+            placeholder="למשל: מילה מנחה — 'ויקם'; ניגוד בין יצחק לישמעאל; חזרה על מילת 'יחדו'...&#10;המורה האי יתייחס לאלו בשאלות לתלמידים."></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" id="saveChapterBtn" onclick="window.saveChapter()">💾 שמור פרק</button>
+          <button class="btn-secondary" onclick="window.closeChapterForm()">ביטול</button>
+        </div>
+        <div class="error-msg" id="chapterFormError"></div>
+      </div><!-- end chapter-form -->
+    </div><!-- end chapter-form-overlay -->
 <!-- Note Modal -->
 <div class="note-modal-overlay" id="noteModal">
   <div class="note-modal-box">
