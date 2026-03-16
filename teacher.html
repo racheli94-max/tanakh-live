@@ -386,9 +386,11 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
       <div class="topbar-sub" id="topbarSub"></div>
     </div>
     <div class="class-switcher" id="classSwitcher" style="display:none">
-      <span style="font-size:11px;color:rgba(232,200,112,.6)">כיתה:</span>
-      <select id="classSwitcherSel" onchange="window.switchClass(this.value)"></select>
-      <button class="class-add-btn" onclick="window.openAddClass()">+ כיתה</button>
+      <span id="classSwitcherSelWrap" style="display:none;align-items:center;gap:6px;">
+        <span style="font-size:11px;color:rgba(232,200,112,.6)">כיתה:</span>
+        <select id="classSwitcherSel" onchange="window.switchClass(this.value)"></select>
+      </span>
+      <button class="class-add-btn" onclick="window.openAddClass()">+ כיתה נוספת</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span class="live-dot"></span>
@@ -982,12 +984,16 @@ window.generateLessonSummary = async function() {
   document.getElementById('summaryModal').style.display = 'flex';
 
   // Build data snapshot
+  var twoHoursAgo = Date.now() - 2*60*60*1000;
   var studentLines = [];
+  var activeCount = 0;
   Object.keys(T.students).forEach(function(sid) {
     var st = T.students[sid];
     var chs = st.chapters || {};
     Object.keys(chs).forEach(function(cid) {
       var s = chs[cid];
+      if((s.lastActivity||0) < twoHoursAgo) return; // skip if inactive > 2h
+      activeCount++;
       var ch = T.chapters[cid] || {};
       var chLabel = ch.title || ((ch.book||'') + (ch.chapter ? ' פרק '+ch.chapter : ''));
       var line = '- ' + (st.name||'תלמיד') + ': ' + chLabel +
@@ -998,17 +1004,20 @@ window.generateLessonSummary = async function() {
         (s.finished ? ', סיים' : '');
       studentLines.push(line);
     });
-    if (!Object.keys(chs).length) {
-      studentLines.push('- ' + (st.name||'תלמיד') + ': טרם התחיל');
-    }
   });
+  if(!studentLines.length) {
+    document.getElementById('summaryContent').textContent = 'לא נמצאה פעילות בשעתיים האחרונות.';
+    document.getElementById('summaryModal').style.display = 'flex';
+    btn.disabled = false; btn.textContent = '🤖 סיכום שיעור';
+    return;
+  }
 
   var chapterNames = Object.values(T.chapters).map(function(ch) {
     return ch.title || (ch.book + ' פרק ' + ch.chapter);
   }).join(', ');
 
   var promptText = [
-    'אתה מנהל חינוכי שמסכם שיעור תנ"ך.',
+    'אתה מנהל חינוכי שמסכם שיעור תנ"ך. הנתונים הם מהשעתיים האחרונות בלבד ('+activeCount+' תלמידים פעילים).',
     'פרקים שנלמדו: ' + chapterNames,
     '',
     'נתוני תלמידים:',
@@ -1574,13 +1583,16 @@ function renderClassSwitcher() {
   var list = getMyClasses();
   var switcher = document.getElementById('classSwitcher');
   var sel = document.getElementById('classSwitcherSel');
+  var selWrap = document.getElementById('classSwitcherSelWrap');
+  // Always show the switcher so teacher can add a class
+  switcher.style.display = 'flex';
   if(list.length > 1) {
-    switcher.style.display = 'flex';
+    selWrap.style.display = 'flex';
     sel.innerHTML = list.map(function(x){
       return '<option value="'+x.code+'"'+(x.code===T.classCode?' selected':'')+'>'+x.name+'</option>';
     }).join('');
   } else {
-    switcher.style.display = 'none';
+    selWrap.style.display = 'none';
   }
 }
 
