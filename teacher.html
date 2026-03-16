@@ -139,9 +139,12 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
   border:2px dashed var(--border-gold);border-radius:var(--radius);font-style:italic;}
 
 /* Add/Edit form */
-.chapter-form{background:rgba(196,154,34,.06);border:1.5px solid var(--border-gold);
-  border-radius:var(--radius);padding:20px;margin-top:14px;display:none;}
-.chapter-form.open{display:block;animation:fadeIn .25s ease;}
+.chapter-form-overlay{display:none;position:fixed;inset:0;background:rgba(30,12,2,.75);
+  z-index:400;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.chapter-form-overlay.open{display:flex;}
+.chapter-form{background:linear-gradient(160deg,#fffbee,#f5e8c4);border:2px solid var(--border-gold);
+  border-radius:var(--radius-lg);padding:28px;width:100%;max-width:640px;margin:auto;
+  box-shadow:0 20px 60px rgba(40,15,0,.4);}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 .book-ch-row{display:grid;grid-template-columns:2fr 1fr;gap:12px;}
 .form-actions{display:flex;gap:10px;margin-top:4px;}
@@ -483,7 +486,16 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
         </div>
       </div>
 
+      </div><!-- end section-card -->
+    </div><!-- end pane-chapters -->
+
+    <!-- Chapter Form Modal Overlay -->
+    <div class="chapter-form-overlay" id="chapterFormOverlay">
       <div class="chapter-form" id="chapterForm">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <div style="font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-deep)" id="chapterFormTitle">הוספת פרק</div>
+          <button onclick="window.closeChapterForm()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);padding:4px 8px;">✕</button>
+        </div>
         <input type="hidden" id="editChapterId">
         <div class="book-ch-row">
           <div class="form-group" style="margin-bottom:12px">
@@ -580,61 +592,6 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
           </div>
           <div style="font-size:11px;color:var(--text-light);margin-top:6px;">השאר ריק כדי ללמוד את כל הפרק. לדוגמה: פסוק 1 עד 15.</div>
         </div>
-            <select id="formChapter">
-              <option value="">— בחר —</option>
-              <option value="1">א (1)</option>
-              <option value="2">ב (2)</option>
-              <option value="3">ג (3)</option>
-              <option value="4">ד (4)</option>
-              <option value="5">ה (5)</option>
-              <option value="6">ו (6)</option>
-              <option value="7">ז (7)</option>
-              <option value="8">ח (8)</option>
-              <option value="9">ט (9)</option>
-              <option value="10">י (10)</option>
-              <option value="11">יא (11)</option>
-              <option value="12">יב (12)</option>
-              <option value="13">יג (13)</option>
-              <option value="14">יד (14)</option>
-              <option value="15">טו (15)</option>
-              <option value="16">טז (16)</option>
-              <option value="17">יז (17)</option>
-              <option value="18">יח (18)</option>
-              <option value="19">יט (19)</option>
-              <option value="20">כ (20)</option>
-              <option value="21">כא (21)</option>
-              <option value="22">כב (22)</option>
-              <option value="23">כג (23)</option>
-              <option value="24">כד (24)</option>
-              <option value="25">כה (25)</option>
-              <option value="26">כו (26)</option>
-              <option value="27">כז (27)</option>
-              <option value="28">כח (28)</option>
-              <option value="29">כט (29)</option>
-              <option value="30">ל (30)</option>
-              <option value="31">לא (31)</option>
-              <option value="32">לב (32)</option>
-              <option value="33">לג (33)</option>
-              <option value="34">לד (34)</option>
-              <option value="35">לה (35)</option>
-              <option value="36">לו (36)</option>
-              <option value="37">לז (37)</option>
-              <option value="38">לח (38)</option>
-              <option value="39">לט (39)</option>
-              <option value="40">מ (40)</option>
-              <option value="41">מא (41)</option>
-              <option value="42">מב (42)</option>
-              <option value="43">מג (43)</option>
-              <option value="44">מד (44)</option>
-              <option value="45">מה (45)</option>
-              <option value="46">מו (46)</option>
-              <option value="47">מז (47)</option>
-              <option value="48">מח (48)</option>
-              <option value="49">מט (49)</option>
-              <option value="50">נ (50)</option>
-            </select>
-          </div>
-        </div>
         <div class="form-group">
           <label>כותרת מותאמת (אופציונלי)</label>
           <input type="text" id="formTitle" placeholder='למשל: "יוסף ואחיו"'>
@@ -674,9 +631,8 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
           <button class="btn-secondary" onclick="window.closeChapterForm()">ביטול</button>
         </div>
         <div class="error-msg" id="chapterFormError"></div>
-      </div>
-    </div>
-  </div>
+      </div><!-- end chapter-form -->
+    </div><!-- end chapter-form-overlay -->
 
   <!-- SETTINGS TAB -->
   <!-- STUDENTS TAB -->
@@ -773,9 +729,9 @@ const FIREBASE_CONFIG = {
 
 let T = {
   db:null, classCode:null, settings:null,
-  students:{}, chapters:{},
-  filter:'all', chFilter:'all',
-  sListener:null, cListener:null,
+  students:{}, chapters:{}, folders:{},
+  filter:'all', chFilter:'all', scoreFilter:100,
+  sListener:null, cListener:null, fListener:null,
   roster:[],
 };
 const LEVELS = { basic:'בסיס', intermediate:'ביניים', advanced:'מתקדם' };
@@ -793,6 +749,7 @@ function showToast(m) {
   var t=document.getElementById('toast');t.textContent=m;t.classList.add('visible');
   setTimeout(function(){t.classList.remove('visible');},3000);
 }
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function ago(ts) {
   if(!ts) return '';
@@ -1374,7 +1331,8 @@ window.openAddChapter = function() {
   document.getElementById('saveChapterBtn').textContent='💾 הוסף פרק';
   document.getElementById('chapterFormError').style.display='none';
   var f=document.getElementById('chapterForm');
-  f.classList.add('open');f.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('chapterFormTitle').textContent = 'הוספת פרק חדש';
+  document.getElementById('chapterFormOverlay').classList.add('open');
 };
 
 window.openEditChapter = function(cid) {
@@ -1391,11 +1349,12 @@ window.openEditChapter = function(cid) {
   document.getElementById('saveChapterBtn').textContent='💾 שמור שינויים';
   document.getElementById('chapterFormError').style.display='none';
   var f=document.getElementById('chapterForm');
-  f.classList.add('open');f.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('chapterFormTitle').textContent = 'עריכת פרק';
+  document.getElementById('chapterFormOverlay').classList.add('open');
 };
 
 window.closeChapterForm = function() {
-  document.getElementById('chapterForm').classList.remove('open');
+  document.getElementById('chapterFormOverlay').classList.remove('open');
 };
 
 window.saveChapter = async function() {
@@ -1595,8 +1554,6 @@ async function extractPPTX(file) {
 /* ============================================================
    Folders
    ============================================================ */
-T.folders = {};
-T.fListener = null;
 
 window.openAddFolder = function() {
   document.getElementById('folderForm').style.display = 'block';
@@ -1663,6 +1620,9 @@ function updateFolderSelect() {
 }
 
 function renderChaptersList() {
+  // Reset item map each render
+  buildChapterItem._seq = 0;
+  buildChapterItem._map = {};
   var list = document.getElementById('chaptersList');
   var chIds = Object.keys(T.chapters);
   if(!chIds.length) { list.innerHTML='<div class="no-chapters">אין פרקים — הוסיפי את הראשון!</div>'; return; }
@@ -1813,7 +1773,6 @@ window.doAddClass = async function() {
 /* ============================================================
    Score filter
    ============================================================ */
-T.scoreFilter = 100;
 
 window.toggleScoreFilter = function() {
   var row = document.getElementById('scoreFilterRow');
