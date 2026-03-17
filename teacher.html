@@ -819,14 +819,7 @@ window.convClick = function(key) {
   window.showConversation(d.sid, d.cid);
 };
 
-window.deleteStudentClick = function(key) {
-  var d = buildStudentCard._map[key];
-  if(!d) return;
-  if(!confirm('הסר את '+d.name+' מהכיתה? כל נתוני התלמיד יימחקו.')) return;
-  T.db.ref('classes/'+T.classCode+'/students/'+d.sid).remove()
-    .then(function(){ showToast('✓ '+d.name+' הוסר מהכיתה'); })
-    .catch(function(e){ showToast('שגיאה: '+e.message); });
-};
+// deleteStudentClick consolidated below
 
 window.resetClick = function(key) {
   var d = buildStudentCard._map[key];
@@ -849,15 +842,7 @@ window.deleteClick = function(key) {
   window.deleteStudent(d.sid, d.name);
 };
 
-window.deleteStudent = async function(sid, studentName) {
-  if(!confirm('למחוק את '+studentName+' לגמרי מהמערכת?\n\nכל הנתונים, השיחות והציונים שלו יימחקו.')) return;
-  try {
-    await T.db.ref('classes/'+T.classCode+'/students/'+sid).remove();
-    showToast('✓ '+studentName+' נמחק מהמערכת');
-  } catch(e) {
-    showToast('שגיאה: '+e.message);
-  }
-};
+
 
 window.deleteStudentClick = function(key) {
   var d = buildStudentCard._map[key];
@@ -1528,9 +1513,7 @@ async function extractPPTX(file) {
 
 
 
-/* ============================================================
-   Folders
-   ============================================================ */
+
 
 window.openAddFolder = function() {
   document.getElementById('folderForm').style.display = 'block';
@@ -1698,9 +1681,7 @@ window.orderCh = function(k,d){ var cid=buildChapterItem._map[k]; if(cid) window
 window.editCh  = function(k)  { var cid=buildChapterItem._map[k]; if(cid) window.openEditChapter(cid); };
 window.delCh   = function(k)  { var cid=buildChapterItem._map[k]; if(cid) window.deleteChapter(cid); };
 
-/* ============================================================
-   Multi-class management
-   ============================================================ */
+
 function getMyClasses() {
   try { return JSON.parse(localStorage.getItem('teacherClasses')||'[]'); } catch(e){ return []; }
 }
@@ -1774,9 +1755,7 @@ window.doAddClass = async function() {
   } catch(e) { err.textContent=e.message; err.style.display='block'; }
 };
 
-/* ============================================================
-   Score filter
-   ============================================================ */
+
 
 window.toggleScoreFilter = function() {
   var row = document.getElementById('scoreFilterRow');
@@ -1796,9 +1775,7 @@ window.resetScoreFilter = function() {
   renderDashboard();
 };
 
-/* ============================================================
-   Time formatting
-   ============================================================ */
+
 function formatTime(seconds) {
   if(!seconds || seconds < 60) return seconds ? seconds+'ש׳׳' : '—';
   var m = Math.floor(seconds/60);
@@ -1806,9 +1783,7 @@ function formatTime(seconds) {
   return Math.floor(m/60)+'ש׳'+' '+( m%60 ? (m%60)+'דק׳' : '');
 }
 
-/* ============================================================
-   Teacher Notes
-   ============================================================ */
+
 var NOTE_BANK_POSITIVE = [
   'עבודה מצוינת! ','כל הכבוד על ההתמדה! ','תשובות מעמיקות מאוד ','ניכר שהכנסת מאמץ ','שאלות נהדרות ','הבנה מרשימה של החומר ','גישה יצירתית לטקסט ',
 ];
@@ -1885,9 +1860,7 @@ window.sendNote = async function() {
 };
 
 
-/* ============================================================
-   Copy / Move chapters to another class
-   ============================================================ */
+
 window.openCopyChaptersModal = function() {
   document.getElementById('copyTargetCode').value = '';
   document.getElementById('copyTargetPass').value = '';
@@ -1970,9 +1943,7 @@ window.doCopyChapters = async function() {
   btn.textContent = '📋 העבר פרקים';
 };
 
-/* ============================================================
-   Class Message
-   ============================================================ */
+
 window.openClassMessage = function() {
   document.getElementById('classMessageInput').value = '';
   var errEl = document.getElementById('classMsgError');
