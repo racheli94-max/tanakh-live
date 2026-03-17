@@ -896,10 +896,6 @@ function buildStudentCard(c) {
   else if(s.finished&&(!s.quizScore||s.quizScore>=50)) tag='<div class="finished-tag">✓ סיים</div>';
   else if(helpFlag) tag='<div class="alert-tag" title="'+esc(reasonTitle)+'">⚠ זקוק לעזרה</div>';
 
-  var helpLine=helpFlag
-    ? '<div style="font-size:11px;color:var(--danger);margin-bottom:6px;padding:5px 9px;background:rgba(139,26,26,.08);border-radius:6px;direction:rtl;">⚠ '+esc(reasonTitle)+'</div>'
-    : '';
-
   var cardKey = 'card_' + (++buildStudentCard._seq);
   buildStudentCard._map[cardKey] = { sid: c.sid, cid: c.cid, name: c.name };
 
@@ -913,6 +909,7 @@ function buildStudentCard(c) {
   return '<div class="student-card'+(helpFlag?' needs-help':'')+'">'+tag+
     '<div class="card-header"><div class="s-name">'+esc(c.name)+'</div><div class="lvl-badge lvl-'+level+'">'+(LEVELS[level]||'בסיס')+'</div></div>'+
     helpLine+
+    '<div class="ch-tag">📖 '+esc(chLabel||'פרק לא ידוע')+'</div>'+
     '<div class="prog-row"><span class="prog-pct">'+progress+'%</span><span class="prog-q">'+(s.questionsAnswered||0)+' שאלות</span></div>'+
     '<div class="prog-outer"><div class="prog-inner" style="width:'+progress+'%"></div></div>'+
     '<div class="topics-row">'+squares+'</div>'+
