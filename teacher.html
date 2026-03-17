@@ -97,7 +97,7 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
   font-family:'Frank Ruhl Libre',serif;font-size:15px;font-weight:700;cursor:pointer;
   box-shadow:0 2px 10px rgba(40,15,0,.2);transition:opacity .2s;}
 .ch-summary-toggle:hover{opacity:.9;}
-.ch-summary-body{display:none;margin-top:10px;display:grid;
+.ch-summary-body{display:none;margin-top:10px;
   grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
 .ch-summary-body.open{display:grid;animation:fadeIn .2s ease;}
 .ch-stat-card{background:linear-gradient(160deg,rgba(255,252,240,.97),rgba(244,232,204,.9));
@@ -819,16 +819,36 @@ window.convClick = function(key) {
   window.showConversation(d.sid, d.cid);
 };
 
+window.deleteStudentClick = function(key) {
+  var d = buildStudentCard._map[key];
+  if(!d) return;
+  if(!confirm('הסר את '+d.name+' מהכיתה? כל נתוני התלמיד יימחקו.')) return;
+  T.db.ref('classes/'+T.classCode+'/students/'+d.sid).remove()
+    .then(function(){ showToast('✓ '+d.name+' הוסר מהכיתה'); })
+    .catch(function(e){ showToast('שגיאה: '+e.message); });
+};
+
 window.resetClick = function(key) {
   var d = buildStudentCard._map[key];
   if (!d) { showToast('לא נמצאו נתונים'); return; }
   window.resetStudentChapter(d.sid, d.cid, d.name);
 };
 
+window.deleteStudentClick = function(key) {
+  var d = buildStudentCard._map[key];
+  if (!d) { showToast('לא נמצאו נתונים'); return; }
+  window.deleteStudent(d.sid, d.name);
+};
+
 function buildStudentCard(c) {
   if(c.noSession||!c.ses) {
+    var noSessKey = 'ns_'+(++buildStudentCard._seq);
+    buildStudentCard._map[noSessKey] = { sid: c.sid, cid: null, name: c.name };
     return '<div class="student-card">'+
-      '<div class="card-header"><div class="s-name">'+esc(c.name)+'</div></div>'+
+      '<div class="card-header"><div class="s-name">'+esc(c.name)+'</div>'+
+        '<button onclick="window.deleteStudentClick(\''+noSessKey+'\')" '+
+        'style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:13px;opacity:.6;padding:2px 4px;" title="הסר תלמיד">✕</button>'+
+      '</div>'+
       '<div style="font-size:13px;color:var(--text-light);margin-top:6px">טרם התחיל ללמוד</div>'+
     '</div>';
   }
@@ -923,6 +943,20 @@ window.showConversation = function(sid, chId) {
     setTimeout(function(){ container.scrollTop = container.scrollHeight; }, 50);
   }
   document.getElementById('convModal').classList.add('open');
+};
+
+window.deleteStudent = async function(sid, studentName) {
+if(!confirm('הסר את '+studentName+' מהמערכת? כל הנתונים יימחקו לצמיתות.')) return;
+  try {
+    await T.db.ref('classes/'+T.classCode+'/students/'+sid).remove();
+    // Remove from roster if present
+    var idx = T.roster.findIndex(function(n){ return n === studentName; });
+    if(idx > -1) {
+      T.roster.splice(idx, 1);
+      await T.db.ref('classes/'+T.classCode+'/settings/roster').set(T.roster);
+    }
+    showToast('✓ "'+studentName+'" הוסר מהמערכת');
+  } catch(e) { showToast('שגיאה: '+e.message); }
 };
 
 window.resetStudentChapter = async function(sid, cid, studentName) {
@@ -1882,6 +1916,8 @@ window.doCopyChapters = async function() {
    ============================================================ */
 window.openClassMessage = function() {
   document.getElementById('classMessageInput').value = '';
+  var errEl = document.getElementById('classMsgError');
+  if(errEl) errEl.style.display = 'none';
   // Load current message
   T.db.ref('classes/'+T.classCode+'/classMessage').once('value', function(snap) {
     var msg = snap.val();
@@ -1903,6 +1939,8 @@ window.closeClassMessage = function() {
 window.sendClassMessage = async function() {
   var text = document.getElementById('classMessageInput').value.trim();
   if(!text) { showToast('אנא כתוב הודעה'); return; }
+  var btn = document.querySelector('#classMessageModal .btn-primary');
+  if(btn) { btn.disabled=true; btn.textContent='שולח...'; }
   try {
     await T.db.ref('classes/'+T.classCode+'/classMessage').set({
       text: text,
@@ -1910,7 +1948,12 @@ window.sendClassMessage = async function() {
     });
     showToast('✓ ההודעה נשלחה לכל הכיתה');
     window.closeClassMessage();
-  } catch(e) { showToast('שגיאה: '+e.message); }
+  } catch(e) {
+    showToast('שגיאה: '+e.message);
+    var errEl = document.getElementById('classMsgError');
+    if(errEl){ errEl.textContent='שגיאה: '+e.message+'. ייתכן שצריך לעדכן Firebase Rules (הוסף classMessage לכללים)'; errEl.style.display='block'; }
+  }
+  if(btn) { btn.disabled=false; btn.textContent='📢 שלח לכיתה'; }
 };
 
 window.clearClassMessage = async function() {
