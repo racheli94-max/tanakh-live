@@ -168,9 +168,17 @@ footer {
 }
 
 @media (max-width: 860px) {
-  .hero { grid-template-columns:1fr; padding:28px 24px; gap:28px; }
-  header { padding:18px 24px; }
-  h1 { font-size: 38px; }
+  .hero { padding:24px 20px; }
+  header { padding:16px 20px; }
+  h1 { font-size: 34px; }
+  .hero-body { font-size:15px; margin:18px 0 28px; }
+  .card { padding:16px 18px; gap:14px; }
+  .card-icon { width:42px; height:42px; font-size:18px; }
+  .card-title { font-size:15px; }
+}
+@media (max-width: 480px) {
+  h1 { font-size: 28px; }
+  .hero { padding:16px; }
 }
 </style>
 
@@ -240,29 +248,25 @@ footer {
     </div>
   </div>
 
-  <!-- ILLUSTRATION -->
   </div>
 
 
 <div style="max-width:680px;margin:0 auto;padding:20px 28px 0;
   font-size:12px;color:var(--ink-soft);line-height:1.7;direction:rtl;text-align:center;">
-  ⚠️ <strong>שימו לב:</strong> פלטפורמה זו מבוססת על בינה מלאכותית.
+  <span id="mobileHint" style="display:none">📱 <strong>גולשים מהטלפון?</strong> <a href="student-mobile.html" style="color:var(--gold-warm);font-weight:600;">לחצו כאן לממשק המובייל</a> &nbsp;·&nbsp; </span>⚠️ <strong>שימו לב:</strong> פלטפורמה זו מבוססת על בינה מלאכותית.
   התוכן עשוי להכיל שגיאות — מומלץ לבדוק מידע חשוב מול מקורות מהימנים.
 </div>
 <footer>✦ &nbsp; ללמוד.תנ"ך — פלטפורמת למידה דיגיטלית &nbsp; ✦</footer>
 
 <script>
-document.querySelectorAll('.card').forEach(function(c, i) {
-  c.style.opacity = '0';
-  c.style.transform = 'translateX(22px)';
+document.querySelectorAll('.card').forEach(function(card, i) {
+  card.style.opacity = '0';
+  card.style.transform = 'translateX(20px)';
   setTimeout(function() {
-    c.style.transition = 'opacity .45s ease, transform .45s ease, box-shadow .25s, border-color .25s';
-    c.style.opacity = '1'; c.style.transform = 'translateX(0)';
-  }, 500 + i * 110);
-});
-
-document.addEventListener('mouseleave', function() {
-  if (wrap) { wrap.style.transform = ''; wrap.style.transition = 'transform .6s ease'; }
+    card.style.transition = 'opacity .45s ease, transform .45s ease, box-shadow .25s, border-color .25s';
+    card.style.opacity = '1';
+    card.style.transform = 'translateX(0)';
+  }, 400 + i * 100);
 });
 </script>
 </body>
