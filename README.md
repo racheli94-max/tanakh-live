@@ -219,15 +219,7 @@ footer {
         <div class="card-icon s">📖</div>
         <div>
           <div class="card-title">כניסה לתלמיד</div>
-          <div class="card-desc">ממשק מחשב</div>
-        </div>
-        <div class="card-arrow">←</div>
-      </a>
-      <a class="card" href="student-mobile.html" style="border-color:rgba(74,107,64,.35);">
-        <div class="card-icon s" style="background:linear-gradient(145deg,#3a7c2a,#2a5a1a);">📱</div>
-        <div>
-          <div class="card-title">כניסה לתלמיד — מובייל</div>
-          <div class="card-desc">ממשק מותאם לטלפון</div>
+          <div class="card-desc">מחשב ופלאפון</div>
         </div>
         <div class="card-arrow">←</div>
       </a>
