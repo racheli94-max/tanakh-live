@@ -433,6 +433,7 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
       </select>
       <div style="margin-right:auto;display:flex;gap:8px;">
         <button class="btn-secondary" onclick="window.exportCSV()" title="ייצוא נתונים ל-Excel">📥 ייצוא CSV</button>
+        <button class="btn-secondary" onclick="window.openClassMessage()" title="שלח הודעה לכל הכיתה">📢 הודעה לכיתה</button>
         <button class="btn-secondary" onclick="window.generateLessonSummary()" id="summaryBtn" title="סיכום שיעור אוטומטי">🤖 סיכום שיעור</button>
       </div>
     </div>
@@ -468,6 +469,7 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
         <button class="btn-primary" onclick="window.openAddChapter()">+ הוסף פרק</button>
         <button class="btn-secondary" onclick="window.openAddFolder()">📁 תיקייה חדשה</button>
+        <button class="btn-secondary" onclick="window.openCopyChaptersModal()">📋 העבר פרקים לכיתה</button>
       </div>
 
       <!-- Add Folder Form -->
@@ -506,13 +508,36 @@ h1,h2,h3,h4{font-family:'Frank Ruhl Libre',serif;}
       <div class="roster-list" id="rosterList">
         <div class="roster-empty">טוען רשימה...</div>
       </div>
+
+      <!-- Add single -->
       <div class="roster-add-row" style="margin-top:12px">
         <input type="text" id="rosterInput" placeholder="הכנס שם תלמיד והוסף" maxlength="60"
           onkeydown="if(event.key==='Enter') window.addRosterStudent()">
         <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="window.addRosterStudent()">+ הוסף</button>
       </div>
-      <div style="margin-top:16px;font-size:12px;color:var(--text-light)">
-        💡 הכנס שם תלמיד ולחץ Enter או "+ הוסף". לחץ ✕ ליד שם להסרה.
+
+      <!-- Bulk import -->
+      <div style="margin-top:18px;border-top:1px solid var(--border-gold);padding-top:16px;">
+        <div style="font-size:13px;font-weight:600;color:var(--brown-primary);margin-bottom:8px;">
+          📋 ייבוא רשימה (כולם ביחד)
+        </div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;">
+          הדבק רשימת שמות — שם אחד בכל שורה, או מופרדים בפסיק. כפילויות יתעלמו אוטומטית.
+        </div>
+        <textarea id="bulkRosterInput" rows="6"
+          placeholder="ישראל ישראלי&#10;שרה כהן&#10;משה לוי&#10;..."
+          style="width:100%;padding:10px 12px;border:1.5px solid var(--border-gold);border-radius:var(--radius);
+            font-family:'Heebo',sans-serif;font-size:14px;background:rgba(255,252,240,.85);
+            direction:rtl;outline:none;resize:vertical;line-height:1.7;"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+          <button class="btn-primary" style="padding:10px 22px" onclick="window.importBulkRoster()">📥 ייבא רשימה</button>
+          <button class="btn-secondary" onclick="window.clearBulkInput()">נקה</button>
+          <span id="bulkImportResult" style="font-size:12px;color:var(--success);font-weight:600;"></span>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;font-size:12px;color:var(--text-light)">
+        💡 תלמיד בודד — הכנס שם ולחץ Enter. רשימה שלמה — הדבק למטה ולחץ "ייבא".
       </div>
     </div>
   </div>
@@ -1283,6 +1308,41 @@ window.addRosterStudent = function() {
   saveRoster();
 };
 
+window.importBulkRoster = async function() {
+  var raw = document.getElementById('bulkRosterInput').value;
+  if(!raw.trim()) { showToast('אנא הדבק רשימת שמות'); return; }
+
+  // Split by newline or comma, clean up
+  var names = raw
+    .split(/[\n,]+/)
+    .map(function(n){ return n.trim(); })
+    .filter(function(n){ return n.length > 0 && n.length <= 60; });
+
+  if(!names.length) { showToast('לא נמצאו שמות תקינים'); return; }
+
+  var added = 0, skipped = 0;
+  names.forEach(function(name) {
+    var exists = T.roster.some(function(n){
+      return n.trim().toLowerCase() === name.toLowerCase();
+    });
+    if(exists) { skipped++; }
+    else { T.roster.push(name); added++; }
+  });
+
+  renderRoster();
+  await saveRoster();
+
+  var msg = '✓ נוספו ' + added + ' תלמידים';
+  if(skipped) msg += ' (' + skipped + ' כבר קיימים)';
+  document.getElementById('bulkImportResult').textContent = msg;
+  setTimeout(function(){ document.getElementById('bulkImportResult').textContent=''; }, 4000);
+};
+
+window.clearBulkInput = function() {
+  document.getElementById('bulkRosterInput').value = '';
+  document.getElementById('bulkImportResult').textContent = '';
+};
+
 async function saveRoster() {
   try {
     await T.db.ref('classes/'+T.classCode+'/settings/roster').set(T.roster);
@@ -1732,6 +1792,135 @@ window.sendNote = async function() {
 };
 
 
+/* ============================================================
+   Copy / Move chapters to another class
+   ============================================================ */
+window.openCopyChaptersModal = function() {
+  document.getElementById('copyTargetCode').value = '';
+  document.getElementById('copyTargetPass').value = '';
+  document.getElementById('copyTargetError').style.display = 'none';
+
+  // Build chapter checkboxes
+  var container = document.getElementById('copyChapterCheckboxes');
+  var chIds = Object.keys(T.chapters).sort(function(a,b){
+    return (T.chapters[a].order||0)-(T.chapters[b].order||0);
+  });
+  if(!chIds.length) { showToast('אין פרקים להעברה'); return; }
+
+  container.innerHTML = chIds.map(function(cid) {
+    var ch = T.chapters[cid];
+    var lbl = ch.title || ((ch.book||'') + (ch.chapter ? ' פרק '+ch.chapter : ''));
+    var folder = ch.folderId && T.folders[ch.folderId] ? ' • '+T.folders[ch.folderId].name : '';
+    return '<label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,252,240,.8);border:1px solid var(--border);border-radius:8px;cursor:pointer;">'
+      +'<input type="checkbox" class="copy-ch-cb" data-cid="'+cid+'" checked style="width:auto;flex-shrink:0;">'
+      +'<span style="font-size:13px;color:var(--brown-deep);">'+esc(lbl)+'<span style="font-size:11px;color:var(--text-light)">'+esc(folder)+'</span></span>'
+      +'</label>';
+  }).join('');
+
+  document.getElementById('copyChaptersModal').style.display = 'flex';
+};
+
+window.selectAllCopyChapters = function(val) {
+  document.querySelectorAll('.copy-ch-cb').forEach(function(cb){ cb.checked = val; });
+};
+
+window.doCopyChapters = async function() {
+  var targetCode = document.getElementById('copyTargetCode').value.trim().replace(/[.#$\/\[\]]/g,'');
+  var targetPass = document.getElementById('copyTargetPass').value;
+  var errEl = document.getElementById('copyTargetError');
+  var btn = document.getElementById('copyChaptersBtn');
+  errEl.style.display = 'none';
+
+  if(!targetCode) { errEl.textContent='אנא הכנס קוד כיתה'; errEl.style.display='block'; return; }
+  if(!targetPass) { errEl.textContent='אנא הכנס סיסמה'; errEl.style.display='block'; return; }
+  if(targetCode === T.classCode) { errEl.textContent='לא ניתן להעביר לאותה כיתה'; errEl.style.display='block'; return; }
+
+  // Get selected chapters
+  var selected = [];
+  document.querySelectorAll('.copy-ch-cb:checked').forEach(function(cb){ selected.push(cb.dataset.cid); });
+  if(!selected.length) { errEl.textContent='אנא בחר לפחות פרק אחד'; errEl.style.display='block'; return; }
+
+  btn.disabled = true; btn.textContent = '⏳ מעביר...';
+
+  try {
+    // Verify target class password
+    var snap = await T.db.ref('classes/'+targetCode+'/settings').once('value');
+    if(!snap.exists()) throw new Error('קוד כיתה "'+targetCode+'" לא נמצא');
+    if(snap.val().password !== targetPass) throw new Error('סיסמה שגויה לכיתה '+targetCode);
+
+    // Copy each selected chapter
+    var copied = 0;
+    for(var i=0; i<selected.length; i++) {
+      var cid = selected[i];
+      var ch = T.chapters[cid];
+      if(!ch) continue;
+      var chData = Object.assign({}, ch, {
+        order: Date.now() + i,
+        folderId: null, // don't copy folder assignment
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP,
+      });
+      delete chData.folderId;
+      await T.db.ref('classes/'+targetCode+'/chapters').push(chData);
+
+
+      copied++;
+    }
+
+    document.getElementById('copyChaptersModal').style.display = 'none';
+    showToast('✓ '+copied+' פרקים הועתקו לכיתה '+targetCode.toUpperCase());
+  } catch(e) {
+    errEl.textContent = 'שגיאה: '+e.message;
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.textContent = '📋 העבר פרקים';
+};
+
+/* ============================================================
+   Class Message
+   ============================================================ */
+window.openClassMessage = function() {
+  document.getElementById('classMessageInput').value = '';
+  // Load current message
+  T.db.ref('classes/'+T.classCode+'/classMessage').once('value', function(snap) {
+    var msg = snap.val();
+    var currentEl = document.getElementById('currentClassMsg');
+    if(msg && msg.text) {
+      document.getElementById('currentClassMsgText').textContent = ' '+msg.text;
+      currentEl.style.display = 'block';
+    } else {
+      currentEl.style.display = 'none';
+    }
+  });
+  document.getElementById('classMessageModal').style.display = 'flex';
+};
+
+window.closeClassMessage = function() {
+  document.getElementById('classMessageModal').style.display = 'none';
+};
+
+window.sendClassMessage = async function() {
+  var text = document.getElementById('classMessageInput').value.trim();
+  if(!text) { showToast('אנא כתוב הודעה'); return; }
+  try {
+    await T.db.ref('classes/'+T.classCode+'/classMessage').set({
+      text: text,
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    });
+    showToast('✓ ההודעה נשלחה לכל הכיתה');
+    window.closeClassMessage();
+  } catch(e) { showToast('שגיאה: '+e.message); }
+};
+
+window.clearClassMessage = async function() {
+  try {
+    await T.db.ref('classes/'+T.classCode+'/classMessage').remove();
+    document.getElementById('currentClassMsg').style.display = 'none';
+    showToast('✓ ההודעה נמחקה');
+  } catch(e) { showToast('שגיאה: '+e.message); }
+};
+
 window.addEventListener('DOMContentLoaded',async function(){
   await initFirebase();showScreen('login');
 });
@@ -1881,6 +2070,67 @@ window.addEventListener('DOMContentLoaded',async function(){
         <div class="error-msg" id="chapterFormError"></div>
       </div><!-- end chapter-form -->
     </div><!-- end chapter-form-overlay -->
+
+<!-- Copy Chapters Modal -->
+<div id="copyChaptersModal" style="display:none;position:fixed;inset:0;background:rgba(30,12,2,.75);z-index:500;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+  <div style="background:linear-gradient(160deg,#fffbee,#f5e8c4);border:2px solid var(--border-gold);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:560px;margin:auto;box-shadow:0 20px 60px rgba(40,15,0,.4);direction:rtl;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-deep);">📋 העבר פרקים לכיתה אחרת</div>
+      <button onclick="document.getElementById('copyChaptersModal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label>כיתת יעד — קוד כיתה</label>
+      <input type="text" id="copyTargetCode" placeholder="קוד הכיתה שאליה להעביר" maxlength="20"
+        style="direction:ltr;letter-spacing:2px;">
+    </div>
+    <div class="form-group">
+      <label>סיסמת כיתת היעד</label>
+      <input type="password" id="copyTargetPass" placeholder="סיסמה">
+    </div>
+    <div id="copyTargetError" style="display:none;color:var(--danger);font-size:13px;margin-bottom:10px;padding:8px 12px;background:rgba(139,26,26,.08);border-radius:6px;"></div>
+
+    <div style="font-size:13px;font-weight:600;color:var(--brown-primary);margin-bottom:8px;">בחר פרקים להעברה:</div>
+    <div id="copyChapterCheckboxes" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:16px;padding:4px 2px;"></div>
+
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
+      <button class="btn-secondary" style="font-size:12px;padding:6px 12px" onclick="window.selectAllCopyChapters(true)">בחר הכל</button>
+      <button class="btn-secondary" style="font-size:12px;padding:6px 12px" onclick="window.selectAllCopyChapters(false)">נקה בחירה</button>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn-secondary" onclick="document.getElementById('copyChaptersModal').style.display='none'">ביטול</button>
+      <button class="btn-primary" id="copyChaptersBtn" onclick="window.doCopyChapters()">📋 העבר פרקים</button>
+    </div>
+  </div>
+</div>
+
+<!-- Class Message Modal -->
+<div id="classMessageModal" style="display:none;position:fixed;inset:0;background:rgba(30,12,2,.75);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:linear-gradient(160deg,#fffbee,#f5e8c4);border:2px solid var(--border-gold);border-radius:var(--radius-lg);padding:28px;width:100%;max-width:480px;direction:rtl;box-shadow:0 20px 60px rgba(40,15,0,.4);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-family:'Frank Ruhl Libre',serif;font-size:18px;color:var(--brown-deep);">📢 הודעה לכל הכיתה</div>
+      <button onclick="window.closeClassMessage()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-light);">✕</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-medium);margin-bottom:14px;padding:8px 12px;background:rgba(196,154,34,.08);border-radius:6px;">
+      ההודעה תוצג לכל התלמידים בכיתה בפעם הבאה שיפתחו את בחירת הפרקים.
+    </div>
+    <div id="currentClassMsg" style="display:none;margin-bottom:14px;padding:10px 13px;background:rgba(45,90,84,.08);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--brown-deep);">
+      <span style="font-weight:600;margin-left:4px;">הודעה נוכחית:</span><span id="currentClassMsgText"></span>
+      <button onclick="window.clearClassMessage()" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;margin-right:8px;">🗑 מחק</button>
+    </div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>הודעה חדשה</label>
+      <textarea id="classMessageInput" placeholder="למשל: זכרו לחזור על פרק א' לפני השיעור..."
+        style="width:100%;padding:10px 13px;border:1.5px solid var(--border-gold);border-radius:var(--radius);font-family:'Heebo',sans-serif;font-size:14px;resize:vertical;min-height:80px;background:rgba(255,252,240,.9);direction:rtl;outline:none;"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn-secondary" onclick="window.closeClassMessage()">ביטול</button>
+      <button class="btn-primary" onclick="window.sendClassMessage()">📢 שלח לכיתה</button>
+    </div>
+  </div>
+</div>
+
 <!-- Note Modal -->
 <div class="note-modal-overlay" id="noteModal">
   <div class="note-modal-box">
