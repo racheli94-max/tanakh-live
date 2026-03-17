@@ -2299,6 +2299,94 @@ window.addEventListener('DOMContentLoaded', async function() {
   showScreen('login');
 });
 
+
+/* ── Mobile screen transition overrides ── */
+
+// Override: show quiz as fullscreen mobile screen
+window._origParseAndShowQuiz = null; // placeholder
+
+function _mobileShowQuiz() {
+  showScreen('quiz');
+  // render is already done by desktop parseAndShowQuiz before display
+}
+
+function _mobileShowSummary(quizScore) {
+  var ch = APP.currentChapter || {};
+  var emoji = quizScore >= 80 ? '🌟' : quizScore >= 60 ? '👍' : '💪';
+  var title = quizScore >= 80 ? 'כל הכבוד! 🌟' : quizScore >= 60 ? 'עבודה טובה! 👍' : 'סיימת! 💪';
+  var el = document.getElementById('summaryEmoji');
+  if(el) el.textContent = emoji;
+  var titleEl = document.getElementById('summaryTitle');
+  if(titleEl) titleEl.textContent = title;
+  var scoreEl = document.getElementById('summaryScore');
+  if(scoreEl) scoreEl.textContent = quizScore !== null ? quizScore + '%' : '';
+  var cardEl = document.getElementById('summaryCard');
+  if(cardEl) cardEl.innerHTML = '';
+  window._pendingQuizScore = quizScore;
+  showScreen('summary');
+}
+
+function _mobileDoFinish(quizScore) {
+  APP.finished = true;
+  APP.progress = 100;
+  updateProgressUI();
+  if(quizScore !== null) {
+    var scoreEl = document.getElementById('scoreDisplay');
+    if(scoreEl) scoreEl.textContent = 'ציון: ' + quizScore + '%';
+    var textEl = document.getElementById('finishedText');
+    if(textEl) textEl.textContent = quizScore >= 80
+      ? 'עשית עבודה מדהימה! 🔥 המורה רואה את ההתקדמות שלך.'
+      : quizScore >= 60
+        ? 'כל הכבוד! 💪 עבודה טובה מאוד.'
+        : 'כל הכבוד שסיימת! 💪 אפשר תמיד לחזור ולשפר.';
+    var titleEl = document.getElementById('finishedTitle');
+    if(titleEl) titleEl.textContent = quizScore >= 80 ? 'כל הכבוד! 🌟' : quizScore >= 60 ? 'עבודה טובה! 👍' : 'סיימת! 💪';
+  }
+  syncToFirebase();
+  showScreen('finished');
+}
+
+// Patch parseAndShowQuiz to use mobile screen
+var _desktopParseAndShowQuiz = window.parseAndShowQuiz || parseAndShowQuiz;
+function parseAndShowQuiz(text) {
+  // Run desktop parsing (sets QUIZ_DATA, calls renderQuiz)
+  // But intercept the display
+  var origDisplay = document.getElementById('quizScreen').style.display;
+  document.getElementById('quizScreen').style.display = ''; // prevent desktop from showing
+  _desktopParseAndShowQuiz(text);
+  // Now show via mobile method
+  setTimeout(function() { showScreen('quiz'); }, 50);
+}
+
+// Override showSummaryCard
+function showSummaryCard(quizScore) { _mobileShowSummary(quizScore); }
+
+// Override doFinish
+function doFinish(quizScore) { _mobileDoFinish(quizScore); }
+
+// Override closeSummaryCard
+window.closeSummaryCard = function() {
+  window._pendingQuizScore !== undefined
+    ? doFinish(window._pendingQuizScore)
+    : doFinish(null);
+  window._pendingQuizScore = undefined;
+};
+
+// Override backToPicker to use mobile showScreen
+var _origBackToPicker = window.backToPicker;
+window.backToPicker = async function() {
+  APP.currentChapterId = null;
+  APP.currentChapter   = null;
+  APP.messages = [];
+  var studentProgress = {};
+  if(APP.db && APP.classCode && APP.studentId) {
+    var snap = await APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/chapters').once('value');
+    studentProgress = snap.val() || {};
+  }
+  renderChapterPicker(studentProgress);
+  showScreen('picker');
+};
+
 /* ── Mobile init ── */
 window.addEventListener('DOMContentLoaded', async function() {
   await initFirebase();
@@ -2459,6 +2547,94 @@ function showMCOptions(opts) {
 function saveScrollPos(){}
 function restoreScrollPos(){}
 
+
+
+/* ── Mobile screen transition overrides ── */
+
+// Override: show quiz as fullscreen mobile screen
+window._origParseAndShowQuiz = null; // placeholder
+
+function _mobileShowQuiz() {
+  showScreen('quiz');
+  // render is already done by desktop parseAndShowQuiz before display
+}
+
+function _mobileShowSummary(quizScore) {
+  var ch = APP.currentChapter || {};
+  var emoji = quizScore >= 80 ? '🌟' : quizScore >= 60 ? '👍' : '💪';
+  var title = quizScore >= 80 ? 'כל הכבוד! 🌟' : quizScore >= 60 ? 'עבודה טובה! 👍' : 'סיימת! 💪';
+  var el = document.getElementById('summaryEmoji');
+  if(el) el.textContent = emoji;
+  var titleEl = document.getElementById('summaryTitle');
+  if(titleEl) titleEl.textContent = title;
+  var scoreEl = document.getElementById('summaryScore');
+  if(scoreEl) scoreEl.textContent = quizScore !== null ? quizScore + '%' : '';
+  var cardEl = document.getElementById('summaryCard');
+  if(cardEl) cardEl.innerHTML = '';
+  window._pendingQuizScore = quizScore;
+  showScreen('summary');
+}
+
+function _mobileDoFinish(quizScore) {
+  APP.finished = true;
+  APP.progress = 100;
+  updateProgressUI();
+  if(quizScore !== null) {
+    var scoreEl = document.getElementById('scoreDisplay');
+    if(scoreEl) scoreEl.textContent = 'ציון: ' + quizScore + '%';
+    var textEl = document.getElementById('finishedText');
+    if(textEl) textEl.textContent = quizScore >= 80
+      ? 'עשית עבודה מדהימה! 🔥 המורה רואה את ההתקדמות שלך.'
+      : quizScore >= 60
+        ? 'כל הכבוד! 💪 עבודה טובה מאוד.'
+        : 'כל הכבוד שסיימת! 💪 אפשר תמיד לחזור ולשפר.';
+    var titleEl = document.getElementById('finishedTitle');
+    if(titleEl) titleEl.textContent = quizScore >= 80 ? 'כל הכבוד! 🌟' : quizScore >= 60 ? 'עבודה טובה! 👍' : 'סיימת! 💪';
+  }
+  syncToFirebase();
+  showScreen('finished');
+}
+
+// Patch parseAndShowQuiz to use mobile screen
+var _desktopParseAndShowQuiz = window.parseAndShowQuiz || parseAndShowQuiz;
+function parseAndShowQuiz(text) {
+  // Run desktop parsing (sets QUIZ_DATA, calls renderQuiz)
+  // But intercept the display
+  var origDisplay = document.getElementById('quizScreen').style.display;
+  document.getElementById('quizScreen').style.display = ''; // prevent desktop from showing
+  _desktopParseAndShowQuiz(text);
+  // Now show via mobile method
+  setTimeout(function() { showScreen('quiz'); }, 50);
+}
+
+// Override showSummaryCard
+function showSummaryCard(quizScore) { _mobileShowSummary(quizScore); }
+
+// Override doFinish
+function doFinish(quizScore) { _mobileDoFinish(quizScore); }
+
+// Override closeSummaryCard
+window.closeSummaryCard = function() {
+  window._pendingQuizScore !== undefined
+    ? doFinish(window._pendingQuizScore)
+    : doFinish(null);
+  window._pendingQuizScore = undefined;
+};
+
+// Override backToPicker to use mobile showScreen
+var _origBackToPicker = window.backToPicker;
+window.backToPicker = async function() {
+  APP.currentChapterId = null;
+  APP.currentChapter   = null;
+  APP.messages = [];
+  var studentProgress = {};
+  if(APP.db && APP.classCode && APP.studentId) {
+    var snap = await APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/chapters').once('value');
+    studentProgress = snap.val() || {};
+  }
+  renderChapterPicker(studentProgress);
+  showScreen('picker');
+};
 
 /* ── Mobile init ── */
 window.addEventListener('DOMContentLoaded', async function() {
