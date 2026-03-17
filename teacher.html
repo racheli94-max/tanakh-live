@@ -881,7 +881,10 @@ function buildStudentCard(c) {
   var progress=Math.min(100,s.progress||0);
   var level=s.level||'basic';
   var topics=s.topicsCovered||new Array(12).fill(false);
-  var chLabel=ch.title||((ch.book||'')+(ch.chapter?' פרק '+ch.chapter:''));
+  // Build label — fallback to session data if chapter not in T.chapters
+  var chLabel = ch.title || ((ch.book||'')+(ch.chapter?' פרק '+ch.chapter:''));
+  if(!chLabel && s.chapterTitle) chLabel = s.chapterTitle;
+  if(!chLabel && c.cid) chLabel = c.cid; // last resort — show the key
   var dkCount=s.dontKnowCount||0;
   var helpReasons=[];
   if(dkCount>=3) helpReasons.push('אמר "אני לא יודע" '+dkCount+' פעמים');
@@ -1260,6 +1263,9 @@ window.openAddChapter = function() {
   document.getElementById('formLiterary').value='';
   document.getElementById('formVerseFrom').value='';
   document.getElementById('formVerseTo').value='';
+  document.getElementById('formCommentators').value='';
+  document.getElementById('formGuidedQuestions').value='';
+  document.getElementById('formCentralMessage').value='';
   document.getElementById('saveChapterBtn').textContent='💾 הוסף פרק';
   document.getElementById('chapterFormError').style.display='none';
   document.getElementById('chapterFormTitle').textContent = 'הוספת פרק חדש';
@@ -1277,6 +1283,9 @@ window.openEditChapter = function(cid) {
   document.getElementById('formVerseFrom').value=ch.verseFrom||'';
   document.getElementById('formVerseTo').value=ch.verseTo||'';
   document.getElementById('formFolder').value=ch.folderId||'';
+  document.getElementById('formCommentators').value=ch.commentators||'';
+  document.getElementById('formGuidedQuestions').value=ch.guidedQuestions||'';
+  document.getElementById('formCentralMessage').value=ch.centralMessage||'';
   document.getElementById('saveChapterBtn').textContent='💾 שמור שינויים';
   document.getElementById('chapterFormError').style.display='none';
   document.getElementById('chapterFormTitle').textContent = 'עריכת פרק';
@@ -1306,6 +1315,9 @@ window.saveChapter = async function() {
     title:title||(book+' פרק '+chapter),summary:summary,literary:literary||'',
     verseFrom:verseFrom, verseTo:verseTo,
     folderId: document.getElementById('formFolder').value || null,
+    commentators:    document.getElementById('formCommentators').value.trim() || '',
+    guidedQuestions: document.getElementById('formGuidedQuestions').value.trim() || '',
+    centralMessage:  document.getElementById('formCentralMessage').value.trim() || '',
     visible:  true,
     order:    Date.now(),
     updatedAt:firebase.database.ServerValue.TIMESTAMP};
@@ -2153,6 +2165,35 @@ window.addEventListener('DOMContentLoaded',async function(){
           <textarea id="formLiterary" rows="4"
             placeholder="למשל: מילה מנחה — 'ויקם'; ניגוד בין יצחק לישמעאל; חזרה על מילת 'יחדו'...&#10;המורה האי יתייחס לאלו בשאלות לתלמידים."></textarea>
         </div>
+
+        <!-- Commentators -->
+        <div class="form-group">
+          <label>פרשנים לפרק זה (אופציונלי)</label>
+          <textarea id="formCommentators" rows="4"
+            placeholder="למשל:&#10;רש&quot;י על בראשית א:א — &quot;בראשית ברא&quot; — רש&quot;י שואל מדוע התורה לא פותחת במצווה הראשונה...&#10;אבן עזרא: ...&#10;&#10;ה-AI ישתמש בפירושים אלו כשישאל תלמידים מתקדמים."></textarea>
+        </div>
+
+        <!-- Guided questions -->
+        <div style="background:rgba(45,90,84,.06);border:1.5px solid rgba(45,90,84,.25);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+          <div style="font-size:14px;font-weight:700;color:var(--brown-primary);margin-bottom:6px;">🎯 שאלות מנחות (אופציונלי)</div>
+          <div style="font-size:12px;color:var(--text-light);margin-bottom:10px;line-height:1.5;">
+            💡 <strong>למה כדאי?</strong> ה-AI מחליט לבד מה לשאול — לפעמים הוא מחמיץ את הנקודה שהכי חשובה לך.
+            כשתרשום שאלות כאן, ה-AI יוודא שהוא שואל אותן בדיוק — ומתאים את הניסוח לרמת התלמיד.
+          </div>
+          <textarea id="formGuidedQuestions" rows="4"
+            placeholder="למשל:&#10;1. מדוע יעקב מעדיף את יוסף על פני אחיו?&#10;2. כיצד מגיב יוסף לחלומותיו — בתמימות או בגאווה?&#10;3. מה הסמליות של הכתונת?"></textarea>
+        </div>
+
+        <!-- Central message -->
+        <div style="background:rgba(196,154,34,.06);border:1.5px solid rgba(196,154,34,.3);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+          <div style="font-size:14px;font-weight:700;color:var(--brown-primary);margin-bottom:6px;">💬 המסר המרכזי שאתה רוצה להעביר (אופציונלי)</div>
+          <div style="font-size:12px;color:var(--text-light);margin-bottom:10px;line-height:1.5;">
+            💡 <strong>למה כדאי?</strong> ה-AI בונה את השיחה לעבר המסר הזה — השאלות, ההסברים, הבוחן — הכל מכוון לאותה מסקנה שאתה רוצה שהתלמיד יצא איתה.
+          </div>
+          <input type="text" id="formCentralMessage"
+            placeholder='למשל: "קנאה בין אחים מובילה לחורבן — אבל גם לתיקון"'>
+        </div>
+
         <div class="form-actions">
           <button class="btn-primary" id="saveChapterBtn" onclick="window.saveChapter()">💾 שמור פרק</button>
           <button class="btn-secondary" onclick="window.closeChapterForm()">ביטול</button>
