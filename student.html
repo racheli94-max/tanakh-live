@@ -316,10 +316,26 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
   font-family:'Frank Ruhl Libre',serif;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;}
 .btn-back-picker:hover{background:var(--gold-faint);}
 
+/* Mobile tab switcher */
+.mobile-tabs{display:none;}
 @media(max-width:700px){
-  .split-container{flex-direction:column;}
-  .chat-panel{width:100%;border-left:none;border-top:2px solid var(--border-gold);order:2;}
-  .bible-panel{order:1;max-height:35vh;}
+  .mobile-tabs{display:flex;background:var(--brown-deep);border-bottom:2px solid var(--gold-deep);}
+  .mobile-tab{flex:1;padding:12px;text-align:center;font-family:'Frank Ruhl Libre',serif;
+    font-size:15px;font-weight:700;color:rgba(232,200,112,.6);border:none;background:none;cursor:pointer;
+    border-bottom:3px solid transparent;transition:all .2s;}
+  .mobile-tab.active{color:var(--gold-light);border-bottom-color:var(--gold);}
+  .split-container{flex-direction:column;overflow:visible;}
+  .chat-panel{width:100%;border-left:none;border-top:none;
+    display:none;flex:1;min-height:0;}
+  .chat-panel.mob-active{display:flex;}
+  .bible-panel{display:none;flex:1;min-height:0;max-height:none;}
+  .bible-panel.mob-active{display:flex;}
+  .input-area{padding:10px 12px;}
+  #userInput{font-size:16px !important;} /* prevent iOS zoom */
+  .send-btn{padding:10px 16px;}
+  .app-header{padding:8px 12px;}
+  .header-title{font-size:15px;}
+  .back-btn{font-size:12px;padding:5px 8px;}
   .chapters-grid{grid-template-columns:1fr;}
 }
 
@@ -473,13 +489,34 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
 <div id="chapterPickerScreen">
   <div class="picker-header">
     <div class="picker-logo"><img src="logo.png" style="height:36px;vertical-align:middle;margin-left:8px">ללמוד.תנ"ך</div>
-    <div class="picker-student" id="pickerStudentName"></div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="picker-student" id="pickerStudentName"></div>
+      <button onclick="window.openEditProfile()" title="עדכן פרופיל"
+        style="background:rgba(255,252,240,.15);border:1px solid rgba(232,200,112,.3);color:rgba(232,200,112,.85);
+        border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;">✏️ פרופיל</button>
+    </div>
   </div>
   <div class="picker-content">
-    <h2 class="picker-title">בחר פרק ללימוד</h2>
+    <div id="classMessageBanner" style="display:none;background:linear-gradient(135deg,rgba(45,90,84,.12),rgba(196,154,34,.1));border:1.5px solid var(--border-gold);border-radius:10px;padding:12px 16px;margin-bottom:16px;direction:rtl;font-size:14px;color:var(--brown-deep);">
+      <span style="font-weight:700;margin-left:6px;">📢 הודעה מהמורה:</span><span id="classMessageText"></span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <h2 class="picker-title" style="margin-bottom:0">בחר פרק ללימוד</h2>
+      <button id="noteBadge" onclick="window.showTeacherNote()" title="הצג הערה מהמורה"
+        style="display:none;align-items:center;gap:5px;background:rgba(139,100,10,.12);border:1.5px solid var(--border-gold);
+        color:var(--gold-deep);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;">
+        📝 יש הערה ממורה
+      </button>
+    </div>
     <p class="picker-subtitle">בחר את הפרק שברצונך ללמוד היום. ניתן לחזור וללמוד פרקים נוספים.</p>
     <div class="chapters-grid" id="chaptersGrid">
       <div class="no-chapters-msg"><div class="no-ch-icon">⏳</div><div>טוען פרקים...</div></div>
+    </div>
+
+    <!-- My completed chapters -->
+    <div id="myChaptersSection" style="display:none;margin-top:32px;padding-top:24px;border-top:1.5px solid var(--border-gold);">
+      <h3 style="font-family:'Frank Ruhl Libre',serif;font-size:18px;color:var(--brown-primary);margin-bottom:14px;">🏆 הסיפור שלי — פרקים שסיימתי</h3>
+      <div id="myChaptersList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
   </div>
 </div>
@@ -491,7 +528,10 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
     <div style="font-size:40px;text-align:center;margin-bottom:10px;">📝</div>
     <div style="font-family:'Frank Ruhl Libre',serif;font-size:20px;color:var(--brown-deep);text-align:center;margin-bottom:6px;">הערה מהמורה</div>
     <div style="font-size:14px;line-height:1.7;color:var(--text-medium);padding:14px;background:rgba(196,154,34,.1);border-radius:10px;border:1px solid var(--border-gold);margin:14px 0;" id="teacherNoteText"></div>
-    <button class="btn-primary" style="width:100%;margin-top:4px" onclick="window.dismissTeacherNote()">הבנתי ✓</button>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+    <button class="btn-primary" style="flex:1" onclick="window.dismissTeacherNote()">הבנתי ✓</button>
+    <button class="btn-secondary" onclick="document.getElementById('teacherNoteBanner').style.display='none'" style="font-size:12px">סגור</button>
+  </div>
   </div>
 </div>
 <div id="mainApp">
@@ -511,9 +551,14 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
     </div>
   </header>
 
+  <!-- Mobile tab switcher (hidden on desktop) -->
+  <div class="mobile-tabs" id="mobileTabs">
+    <button class="mobile-tab active" id="mobTabChat" onclick="window.switchMobileTab('chat')">💬 שיחה</button>
+    <button class="mobile-tab" id="mobTabText" onclick="window.switchMobileTab('text')">📖 טקסט</button>
+  </div>
   <div class="split-container">
     <!-- Chat -->
-    <div class="chat-panel">
+    <div class="chat-panel mob-active" id="chatPanelEl">
       <div class="chat-header">
         <span style="font-size:20px">🤖</span>
         <span class="chat-header-title">שיחה עם המורה</span>
@@ -541,7 +586,7 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
     </div>
 
     <!-- Bible -->
-    <div class="bible-panel">
+    <div class="bible-panel" id="biblePanelEl">
       <div class="bible-panel-header">
         <div class="bible-chapter-title" id="bibleTitle">טוען פרק...</div>
         <div class="bible-hint">לחץ על מילה לקבלת הסבר</div>
@@ -745,6 +790,7 @@ let APP = {
   awaitingMC: false,
   sessionStart: Date.now(),
   timeSpent: 0,
+  sessionActive: true,
   quizScore: null,
   dontKnowCount: 0,
   wrongAnswerCount: 0,
@@ -915,6 +961,9 @@ window.doLogin = async function() {
     document.getElementById('loadingMsg').textContent = 'טוען פרקים...';
     var chSnap = await APP.db.ref('classes/'+code+'/chapters').once('value');
     APP.chapters = chSnap.val() || {};
+    // Load student profile into APP
+    var pSnap = await APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/profile').once('value');
+    APP.profile = pSnap.val() || {};
 
     // Load student's chapter progress
     var progSnap = await APP.db.ref('classes/'+code+'/students/'+APP.studentId+'/chapters').once('value');
@@ -954,6 +1003,9 @@ function renderChapterPicker(studentProgress) {
     return;
   }
 
+  // Build my completed chapters
+  renderMyChapters(studentProgress);
+
   grid.innerHTML = ids.map(function(cid, idx) {
     var ch = APP.chapters[cid];
     var prog = (studentProgress[cid]) || {};
@@ -990,6 +1042,7 @@ window.selectChapter = async function(cid) {
 
     APP.messages          = session.messages          || [];
     APP.questionsAnswered = session.questionsAnswered || 0;
+    APP.profile = APP.profile || {}; // keep profile reference
     APP.level             = session.level             || 'basic';
     APP.topicsCovered     = session.topicsCovered     || new Array(12).fill(false);
     APP.progress          = session.progress          || 0;
@@ -1188,6 +1241,43 @@ window.onWordClick = async function(event, word, root) {
 /* ============================================================
    Start learning app
    ============================================================ */
+function renderMyChapters(studentProgress) {
+  var section = document.getElementById('myChaptersSection');
+  var list    = document.getElementById('myChaptersList');
+  if(!section||!list) return;
+
+  var completed = Object.keys(studentProgress).filter(function(cid){
+    return studentProgress[cid] && studentProgress[cid].finished;
+  });
+
+  if(!completed.length) { section.style.display='none'; return; }
+  section.style.display = 'block';
+
+  function formatTime(s) {
+    if(!s||s<60) return '';
+    var m=Math.floor(s/60);
+    return m<60 ? m+'דק׳' : Math.floor(m/60)+'ש׳'+(m%60?''+m%60+'דק׳':'');
+  }
+
+  list.innerHTML = completed.map(function(cid) {
+    var ch  = APP.chapters[cid] || {};
+    var ses = studentProgress[cid] || {};
+    var lbl = ch.title || ((ch.book||'')+(ch.chapter?' פרק '+ch.chapter:''));
+    var score = ses.quizScore != null ? ses.quizScore+'%' : '—';
+    var emoji = ses.quizScore >= 80 ? '🌟' : ses.quizScore >= 60 ? '👍' : '✓';
+    var time  = ses.timeSpent ? ' · ⏱ '+formatTime(ses.timeSpent) : '';
+    var date  = ses.lastActivity ? new Date(ses.lastActivity).toLocaleDateString('he-IL') : '';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,252,240,.8);'
+      +'border:1.5px solid var(--border-gold);border-radius:10px;">'
+      +'<span style="font-size:22px">'+emoji+'</span>'
+      +'<div style="flex:1;">'
+      +'<div style="font-family:Frank Ruhl Libre,serif;font-size:15px;color:var(--brown-deep);font-weight:700;">'+escHtml(lbl)+'</div>'
+      +'<div style="font-size:12px;color:var(--text-light);margin-top:2px;">ציון בוחן: <strong>'+score+'</strong>'+time+(date?' · '+date:'')+'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
 function startLearningApp() {
   var ch = APP.currentChapter;
   document.getElementById('headerStudentName').textContent = APP.studentName;
@@ -1206,6 +1296,7 @@ function startLearningApp() {
   updateProgressUI();
   // Check for teacher note
   checkTeacherNote();
+  checkClassMessage();
   // Save scroll position on scroll
   var _area = document.getElementById('messagesArea');
   if(_area) _area.addEventListener('scroll', function(){ saveScrollPos(); }, {passive:true});
@@ -1750,24 +1841,119 @@ window.clearSearch = function() {
 /* ============================================================
    Teacher Note
    ============================================================ */
+function checkClassMessage() {
+  if(!APP.db||!APP.classCode) return;
+  APP.db.ref('classes/'+APP.classCode+'/classMessage').once('value', function(snap) {
+    if(!snap.exists()) return;
+    var msg = snap.val();
+    if(!msg||!msg.text) return;
+    var banner = document.getElementById('classMessageBanner');
+    document.getElementById('classMessageText').textContent = ' '+msg.text;
+    banner.style.display = 'block';
+  });
+}
+
 function checkTeacherNote() {
   if(!APP.db||!APP.classCode||!APP.studentId) return;
   APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/teacherNote').once('value', function(snap) {
     if(!snap.exists()) return;
     var note = snap.val();
     if(!note||!note.text) return;
-    // Show banner
-    document.getElementById('teacherNoteText').textContent = note.text;
-    document.getElementById('teacherNoteBanner').style.display = 'flex';
+    updateNoteBadge();
+    // Auto-show only if not yet seen
+    if(!note.seen) {
+      document.getElementById('teacherNoteText').textContent = note.text;
+      document.getElementById('teacherNoteBanner').style.display = 'flex';
+    }
   });
 }
 
 window.dismissTeacherNote = function() {
   document.getElementById('teacherNoteBanner').style.display = 'none';
-  // Clear note from Firebase so it doesn't show again
+  // Mark as seen (keep text but set seen:true so it doesn't auto-pop next time)
   if(APP.db&&APP.classCode&&APP.studentId)
-    APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/teacherNote').remove();
+    APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/teacherNote/seen').set(true);
+  // Show note badge in picker
+  updateNoteBadge();
 };
+
+function updateNoteBadge() {
+  var badge = document.getElementById('noteBadge');
+  if(!badge) return;
+  if(APP.db&&APP.classCode&&APP.studentId) {
+    APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/teacherNote').once('value', function(snap) {
+      var note = snap.val();
+      if(note && note.text) {
+        badge.style.display = 'inline-flex';
+        badge.title = note.text;
+      } else {
+        badge.style.display = 'none';
+      }
+    });
+  }
+}
+
+window.showTeacherNote = function() {
+  if(APP.db&&APP.classCode&&APP.studentId) {
+    APP.db.ref('classes/'+APP.classCode+'/students/'+APP.studentId+'/teacherNote').once('value', function(snap) {
+      var note = snap.val();
+      if(note && note.text) {
+        document.getElementById('teacherNoteText').textContent = note.text;
+        document.getElementById('teacherNoteBanner').style.display = 'flex';
+      }
+    });
+  }
+};
+
+window.openEditProfile = function() {
+  // Pre-fill from saved profile
+  if(APP.profile) {
+    var p = APP.profile;
+    if(p.gender) {
+      document.querySelectorAll('.gender-btn').forEach(function(btn){
+        btn.classList.toggle('active', btn.dataset.val === p.gender);
+      });
+    }
+    if(p.age) document.getElementById('profileAge').value = p.age;
+    if(p.interests) {
+      document.querySelectorAll('.interest-chip').forEach(function(chip){
+        chip.classList.toggle('active', (p.interests||[]).indexOf(chip.dataset.val)>-1);
+      });
+    }
+    if(p.freeText) document.getElementById('profileFree').value = p.freeText;
+  }
+  _profileStep = 0;
+  document.querySelectorAll('.profile-step').forEach(function(s,i){ s.classList.toggle('active', i===0); });
+  document.getElementById('profileNextBtn').textContent = 'המשך ←';
+  showScreen('profile');
+};
+
+/* Mobile tab switching */
+window.switchMobileTab = function(tab) {
+  var chat  = document.getElementById('chatPanelEl');
+  var bible = document.getElementById('biblePanelEl');
+  var tabChat  = document.getElementById('mobTabChat');
+  var tabText  = document.getElementById('mobTabText');
+  if(tab === 'chat') {
+    chat.classList.add('mob-active');
+    bible.classList.remove('mob-active');
+    tabChat.classList.add('active');
+    tabText.classList.remove('active');
+    scrollChat();
+  } else {
+    bible.classList.add('mob-active');
+    chat.classList.remove('mob-active');
+    tabText.classList.add('active');
+    tabChat.classList.remove('active');
+  }
+};
+
+// Auto-switch to chat when AI responds on mobile
+function switchToChat() {
+  if(window.innerWidth <= 700) {
+    window.switchMobileTab('chat');
+  }
+}
 
 function scrollChat() {
   var area=document.getElementById('messagesArea');
@@ -1806,6 +1992,21 @@ function setWaiting(w) {
 
 // Connection monitoring
 window.addEventListener('online',  function(){ document.getElementById('offlineBanner').style.display='none'; });
+// Pause time tracking when tab hidden
+document.addEventListener('visibilitychange', function() {
+  if(document.hidden) {
+    // Tab hidden — save elapsed and pause
+    if(APP.sessionActive && APP.sessionStart) {
+      APP.timeSpent = (APP.timeSpent||0) + Math.round((Date.now()-APP.sessionStart)/1000);
+      APP.sessionStart = null;
+      APP.sessionActive = false;
+    }
+  } else {
+    // Tab visible again — resume
+    APP.sessionStart = Date.now();
+    APP.sessionActive = true;
+  }
+});
 window.addEventListener('offline', function(){ document.getElementById('offlineBanner').style.display='block'; });
 
 window.autoResizeInput = function(el) {
@@ -1875,7 +2076,7 @@ function syncToFirebase() {
   if(!APP.db||!APP.classCode||!APP.studentId||!APP.currentChapterId) return;
   var data={
     progress:APP.progress, level:APP.level,
-    timeSpent: (APP.timeSpent||0) + Math.round((Date.now()-APP.sessionStart)/1000),
+    timeSpent: (APP.timeSpent||0) + (APP.sessionStart ? Math.round((Date.now()-APP.sessionStart)/1000) : 0),
     questionsAnswered:APP.questionsAnswered,
     topicsCovered:APP.topicsCovered, finished:APP.finished,
     quizScore: APP.quizScore||null,
