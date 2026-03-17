@@ -1860,8 +1860,8 @@ function checkTeacherNote() {
     var note = snap.val();
     if(!note||!note.text) return;
     updateNoteBadge();
-    // Auto-show only if not yet seen
-    if(!note.seen) {
+    // Show only if this note is for the current chapter
+    if(note.chapterId && note.chapterId === APP.currentChapterId) {
       document.getElementById('teacherNoteText').textContent = note.text;
       document.getElementById('teacherNoteBanner').style.display = 'flex';
     }
