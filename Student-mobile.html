@@ -542,8 +542,8 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
       </div>
       <!-- Action buttons -->
       <div class="action-btns" id="actionBtns">
-        <button class="action-btn hint" onclick="window.sendHint()">💡 רמז</button>
-        <button class="action-btn dontknow" onclick="window.sendDontKnow()">🤷 אני לא יודע</button>
+        <button class="action-btn hint" onclick="window.askHint()">💡 רמז</button>
+        <button class="action-btn dontknow" onclick="window.dontKnow()">🤷 אני לא יודע</button>
       </div>
       <!-- Input -->
       <div class="input-area">
@@ -551,8 +551,8 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
         <div class="input-row">
           <textarea id="userInput" placeholder="כתוב תשובה..." rows="1" maxlength="400"
             oninput="window.autoResizeInput(this)"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.sendMessage();}"></textarea>
-          <button class="send-btn" id="sendBtn" onclick="window.sendMessage()">➤</button>
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.sendUserMessage();}"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="window.sendUserMessage()">➤</button>
         </div>
       </div>
     </div>
@@ -762,7 +762,7 @@ function showMCOptions(opts) {
     btn.onclick = function() {
       document.querySelectorAll('.mc-option').forEach(function(b){ b.onclick=null; b.style.opacity='.6'; });
       btn.classList.add('selected');
-      window.sendMessage(opt.replace(/^[א-ד]\)\s*/,''));
+      window.sendUserMessage(opt.replace(/^[א-ד]\)\s*/,''));
     };
     inner.appendChild(btn);
   });
