@@ -726,13 +726,7 @@ function loadScript(src) {
 }
 
 function showScreen(w) {
-  document.getElementById('loginScreen').style.display         = w==='login'   ?'flex' :'none';
-  document.getElementById('loadingScreen').style.display       = w==='loading' ?'flex' :'none';
-  document.getElementById('profileScreen').style.display       = w==='profile' ?'flex' :'none';
-  document.getElementById('chapterPickerScreen').style.display = w==='picker'  ?'flex' :'none';
-  document.getElementById('mainApp').style.display             = w==='main'    ?'flex' :'none';
-  if(w==='main')    document.getElementById('mainApp').style.flexDirection='column';
-  if(w==='picker')  document.getElementById('chapterPickerScreen').style.flexDirection='column';
+  // No-op in mobile — overridden by mobile helpers script below
 }
 
 function showLoginError(msg) {
@@ -2322,14 +2316,13 @@ function showScreen(name) {
     name === 'loading'  ? 'loadingScreen'       :
     name === 'profile'  ? 'profileScreen'       :
     name === 'picker'   ? 'chapterPickerScreen' :
-    name === 'app'      ? 'mainApp'             :
+    (name === 'app' || name === 'main') ? 'mainApp' :
     name === 'quiz'     ? 'quizScreen'          :
     name === 'summary'  ? 'summaryScreen'       :
     name === 'finished' ? 'finishedScreen'      : name
   );
   if(el) el.classList.add('active');
 
-  // Scroll to top on picker
   if(name === 'picker') {
     var body = document.querySelector('#chapterPickerScreen > div[style]');
     if(body) body.scrollTop = 0;
