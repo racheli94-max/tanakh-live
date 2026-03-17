@@ -1816,6 +1816,20 @@ window.noteClick = function(key) {
   document.getElementById('noteStudentName').textContent = 'התלמיד: '+esc(d.name);
   document.getElementById('noteCustomText').value = '';
 
+  // Populate chapter selector
+  var sel = document.getElementById('noteChapterSel');
+  sel.innerHTML = '<option value="">כללית — תופיע בכניסה למערכת</option>';
+  Object.keys(T.chapters).sort(function(a,b){return (T.chapters[a].order||0)-(T.chapters[b].order||0);})
+    .forEach(function(cid) {
+      var ch = T.chapters[cid];
+      var lbl = ch.title || ((ch.book||'')+(ch.chapter?' פרק '+ch.chapter:''));
+      var opt = document.createElement('option');
+      opt.value = cid;
+      opt.textContent = lbl;
+      if(cid === d.cid) opt.selected = true; // pre-select student's current chapter
+      sel.appendChild(opt);
+    });
+
   // Build bank chips using index to avoid quote issues
   window._noteBankMap = {};
   NOTE_BANK_POSITIVE.forEach(function(n,i){ window._noteBankMap['p'+i]=n; });
@@ -1848,12 +1862,15 @@ window.sendNote = async function() {
   if(!_noteTarget) return;
   var text = document.getElementById('noteCustomText').value.trim();
   if(!text) { showToast('אנא כתוב הערה לפני השליחה'); return; }
+  var chapterId = document.getElementById('noteChapterSel').value || null;
+  var noteData = { text: text, createdAt: firebase.database.ServerValue.TIMESTAMP };
+  if(chapterId) noteData.chapterId = chapterId;
   try {
-    await T.db.ref('classes/'+T.classCode+'/students/'+_noteTarget.sid+'/teacherNote').set({
-      text: text,
-      createdAt: firebase.database.ServerValue.TIMESTAMP
-    });
-    showToast('✓ ההערה נשלחה ל'+_noteTarget.name);
+    await T.db.ref('classes/'+T.classCode+'/students/'+_noteTarget.sid+'/teacherNote').set(noteData);
+    var chLabel = chapterId && T.chapters[chapterId]
+      ? ' על פרק '+esc(T.chapters[chapterId].title || T.chapters[chapterId].book+' '+T.chapters[chapterId].chapter)
+      : '';
+    showToast('✓ ההערה נשלחה ל'+_noteTarget.name+chLabel);
     window.closeNoteModal();
   } catch(e) { showToast('שגיאה: '+e.message); }
 };
@@ -2215,6 +2232,12 @@ window.addEventListener('DOMContentLoaded',async function(){
       <button onclick="window.closeNoteModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-light);">✕</button>
     </div>
     <div id="noteStudentName" style="font-size:13px;color:var(--text-medium);margin-bottom:14px;"></div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>על איזה פרק ההערה?</label>
+      <select id="noteChapterSel" style="width:100%;padding:9px 13px;border:1.5px solid var(--border-gold);border-radius:var(--radius);font-family:'Heebo',sans-serif;font-size:14px;background:rgba(255,252,240,.85);direction:rtl;outline:none;">
+        <option value="">— בחר פרק —</option>
+      </select>
+    </div>
     <div class="note-bank-section">
       <div class="note-bank-title">✨ הערות חיוביות מוכנות</div>
       <div class="note-bank-chips" id="positiveBankChips"></div>
