@@ -834,6 +834,31 @@ window.resetClick = function(key) {
   window.resetStudentChapter(d.sid, d.cid, d.name);
 };
 
+window.clearHelpFlag = function(key) {
+  var d = buildStudentCard._map[key];
+  if (!d) return;
+  // Reset dontKnowCount to 0 — flag disappears, will re-appear if student hits 3 again
+  T.db.ref('classes/'+T.classCode+'/students/'+d.sid+'/chapters/'+d.cid+'/dontKnowCount').set(0)
+    .then(function(){ showToast('✓ הסימון הוסר — יחזור אם יאמר "לא יודע" שוב 3 פעמים'); })
+    .catch(function(e){ showToast('שגיאה: '+e.message); });
+};
+
+window.deleteClick = function(key) {
+  var d = buildStudentCard._map[key];
+  if (!d) { showToast('לא נמצאו נתונים'); return; }
+  window.deleteStudent(d.sid, d.name);
+};
+
+window.deleteStudent = async function(sid, studentName) {
+  if(!confirm('למחוק את '+studentName+' לגמרי מהמערכת?\n\nכל הנתונים, השיחות והציונים שלו יימחקו.')) return;
+  try {
+    await T.db.ref('classes/'+T.classCode+'/students/'+sid).remove();
+    showToast('✓ '+studentName+' נמחק מהמערכת');
+  } catch(e) {
+    showToast('שגיאה: '+e.message);
+  }
+};
+
 window.deleteStudentClick = function(key) {
   var d = buildStudentCard._map[key];
   if (!d) { showToast('לא נמצאו נתונים'); return; }
@@ -846,7 +871,7 @@ function buildStudentCard(c) {
     buildStudentCard._map[noSessKey] = { sid: c.sid, cid: null, name: c.name };
     return '<div class="student-card">'+
       '<div class="card-header"><div class="s-name">'+esc(c.name)+'</div>'+
-        '<button onclick="window.deleteStudentClick(\''+noSessKey+'\')" '+
+        '<button onclick="window.deleteClick(\''+noSessKey+'\')" '+
         'style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:13px;opacity:.6;padding:2px 4px;" title="הסר תלמיד">✕</button>'+
       '</div>'+
       '<div style="font-size:13px;color:var(--text-light);margin-top:6px">טרם התחיל ללמוד</div>'+
@@ -875,14 +900,19 @@ function buildStudentCard(c) {
     ? '<div style="font-size:11px;color:var(--danger);margin-bottom:6px;padding:5px 9px;background:rgba(139,26,26,.08);border-radius:6px;direction:rtl;">⚠ '+esc(reasonTitle)+'</div>'
     : '';
 
-  // Use JSON-encoded IDs stored in a lookup map — avoids all quote/encoding issues
   var cardKey = 'card_' + (++buildStudentCard._seq);
   buildStudentCard._map[cardKey] = { sid: c.sid, cid: c.cid, name: c.name };
+
+  var helpLine = helpFlag
+    ? '<div style="font-size:11px;color:var(--danger);margin-bottom:6px;padding:5px 9px;background:rgba(139,26,26,.08);border-radius:6px;direction:rtl;display:flex;align-items:center;justify-content:space-between;">'+
+      '<span>⚠ '+esc(reasonTitle)+'</span>'+
+      '<button onclick="window.clearHelpFlag(\''+cardKey+'\')" style="background:none;border:none;cursor:pointer;color:var(--text-light);font-size:11px;padding:0 4px;opacity:.7;" title="סמן כטופל">✓ טופל</button>'+
+      '</div>'
+    : '';
 
   return '<div class="student-card'+(helpFlag?' needs-help':'')+'">'+tag+
     '<div class="card-header"><div class="s-name">'+esc(c.name)+'</div><div class="lvl-badge lvl-'+level+'">'+(LEVELS[level]||'בסיס')+'</div></div>'+
     helpLine+
-    '<div class="ch-tag">📖 '+esc(chLabel||'פרק לא ידוע')+'</div>'+
     '<div class="prog-row"><span class="prog-pct">'+progress+'%</span><span class="prog-q">'+(s.questionsAnswered||0)+' שאלות</span></div>'+
     '<div class="prog-outer"><div class="prog-inner" style="width:'+progress+'%"></div></div>'+
     '<div class="topics-row">'+squares+'</div>'+
@@ -893,6 +923,7 @@ function buildStudentCard(c) {
         '<button class="conv-btn" onclick="window.convClick(\''+cardKey+'\')">💬 שיחה</button>'+
         '<button class="conv-btn" onclick="window.noteClick(\''+cardKey+'\')" style="color:#1e5c2a;border-color:rgba(45,110,58,.3)">📝 הערה</button>'+
         '<button class="conv-btn" onclick="window.resetClick(\''+cardKey+'\')" style="color:var(--danger);border-color:rgba(139,26,26,.3)">🔄 איפוס</button>'+
+        '<button class="conv-btn" onclick="window.deleteClick(\''+cardKey+'\')" style="color:var(--danger);border-color:rgba(139,26,26,.3);opacity:.7" title="מחק תלמיד">🗑</button>'+
         '<span class="card-time" title="'+( s.lastActivity ? new Date(s.lastActivity).toLocaleString('he-IL') : '' )+'">'+ago(s.lastActivity)+'</span>'+
       '</div>'+
     '</div>'+
@@ -1126,10 +1157,12 @@ window.toggleChSummary = function() {
   var body = document.getElementById('chSummaryBody');
   var arrow = document.getElementById('chSummaryArrow');
   if (_chSummaryOpen) {
+    body.style.display = 'grid';
     body.classList.add('open');
     arrow.textContent = '▲';
     renderChSummary();
   } else {
+    body.style.display = 'none';
     body.classList.remove('open');
     arrow.textContent = '▼';
   }
