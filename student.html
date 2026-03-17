@@ -704,9 +704,7 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
 </div>
 
 <script>
-/* ============================================================
-   Firebase Config
-   ============================================================ */
+
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyAB_kj4R2BHtcP08rmpOpzPkdHnaQ2cSU0",
   authDomain:        "tanach-school.firebaseapp.com",
@@ -730,13 +728,9 @@ const BOOK_SEFARIA = {
   'נחמיה':'Nehemiah','דברי הימים א':'I_Chronicles','דברי הימים ב':'II_Chronicles',
 };
 
-/* ============================================================
-   Helpers
-   ============================================================ */
 
-/* ============================================================
-   Helpers
-   ============================================================ */
+
+
 function stripTags(text) {
   return text
     .replace(/\[פסוק:[\d\u05D0-\u05EA\u05F3-]+\]/g, '')
@@ -763,9 +757,7 @@ function decodeEntities(str) {
   return txt.value;
 }
 
-/* ============================================================
-   App State
-   ============================================================ */
+
 let APP = {
   db: null,
   classCode: null, studentName: null, studentId: null,
@@ -797,9 +789,7 @@ let APP = {
 
 const LEVELS = { basic:{label:'בסיס',cls:'level-basic'}, intermediate:{label:'ביניים',cls:'level-intermediate'}, advanced:{label:'מתקדם',cls:'level-advanced'} };
 
-/* ============================================================
-   Helpers
-   ============================================================ */
+
 function loadScript(src) {
   return new Promise(function(res,rej){ var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s); });
 }
@@ -818,9 +808,7 @@ function showLoginError(msg) {
   var e=document.getElementById('loginError');e.textContent=msg;e.style.display='block';
 }
 
-/* ============================================================
-   Firebase init
-   ============================================================ */
+
 async function initFirebase() {
   await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
   await loadScript('https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js');
@@ -828,9 +816,7 @@ async function initFirebase() {
   APP.db = firebase.database();
 }
 
-/* ============================================================
-   Profile questionnaire
-   ============================================================ */
+
 var _profileData = { gender: null, age: null, interests: [], freeText: '' };
 var _profileStep = 0;
 
@@ -906,9 +892,7 @@ async function saveProfile() {
   }
 }
 
-/* ============================================================
-   Login
-   ============================================================ */
+
 window.doLogin = async function() {
   var code = document.getElementById('classCodeInput').value.trim().replace(/[.#$\/\[\]]/g,'');
   var name = document.getElementById('studentNameInput').value.trim();
@@ -985,9 +969,7 @@ window.doLogin = async function() {
   }
 };
 
-/* ============================================================
-   Chapter Picker
-   ============================================================ */
+
 function renderChapterPicker(studentProgress) {
   var ids = Object.keys(APP.chapters)
     .filter(function(cid){ return APP.chapters[cid].visible !== false; })
@@ -1073,9 +1055,7 @@ window.backToPicker = async function() {
   } catch(e) { showScreen('picker'); }
 };
 
-/* ============================================================
-   Load Bible text
-   ============================================================ */
+
 async function loadBibleText(heBook, chapter, verseFrom, verseTo) {
   try {
     var enBook = BOOK_SEFARIA[heBook] || heBook;
@@ -1234,9 +1214,7 @@ window.onWordClick = async function(event, word, root) {
   }, 50);
 };
 
-/* ============================================================
-   Start learning app
-   ============================================================ */
+
 function renderMyChapters(studentProgress) {
   var section = document.getElementById('myChaptersSection');
   var list    = document.getElementById('myChaptersList');
@@ -1326,9 +1304,7 @@ window.closeOnboarding = function() {
   startConversation();
 };
 
-/* ============================================================
-   Claude/Gemini system prompt
-   ============================================================ */
+
 function buildSystemPrompt() {
   var ch = APP.currentChapter || {};
   var levelHe = APP.level==='basic'?'בסיס':APP.level==='intermediate'?'ביניים':'מתקדם';
@@ -1391,7 +1367,7 @@ function buildSystemPrompt() {
     + '   ב) בגוף ההודעה: פסוקים באותיות עבריות עם גרש: פסוק א\', פסוק יד\'. טווח: פסוק ז\'-ח\'.\n'
     + '   אסור: פסוק 3, פסוק 14, [פסוק:ז].\n'
     + '   נכון: [פסוק:3] ...בפסוק ג\'... | [פסוק:14] ...פסוק יד\'... | פסוק ז\'-ח\'\n'
-    + '   ⚠️ כלל זה חל לאורך כל השיחה ללא יוצא מן הכלל — גם בפסוקים האחרונים.',
+    + '   ⚠️ חל לאורך כל השיחה — גם בפסוקים האחרונים.',
     '3. אל תגיד לתלמיד את רמתו.',
     '4. אל תגיד "אשאל שאלה פשוטה יותר" — פשוט שאל אחת.',
 
@@ -1430,13 +1406,10 @@ function buildSystemPrompt() {
     '11. **חזרה לנושאים קשים** — לפני [סיום]:\n'
     + '   אם יש פסוקים שהתלמיד לא ידע עליהם — אל תדלג. חזור: "בואו נחזור לרגע לפסוק X שהיה קצת קשה — עכשיו אחרי שראינו את כל הפרק, מה אתה/את חושב/ת?"',
     '11. "רמז": רמז אחד ברור.',
-    '12. **כיסוי פסוקים — כלל ברזל מוחלט:**\n'
-    + '   א) עבור על הפסוקים לפי הסדר: פסוק א׳, אחר כך ב׳, אחר כך ג׳ וכן הלאה.\n'
-    + '   ב) על כל פסוק — שאל שאלה אחת. **אסור לדלג על פסוק.**\n'
-    + '   ג) **אל תעבור לפסוק N+1 עד שהתלמיד ענה תשובה נכונה על פסוק N.**\n'
-    + '   ד) תשובה שגויה = שאל שוב על אותו פסוק בניסוח פשוט יותר.\n'
-    + '   ה) "אני לא יודע" = הסבר את הפסוק ← שאל את אותה שאלה כרב-ברירה עם 4 אפשרויות.\n'
-    + '   ו) **ספירת פסוקים: בסטטוס "עוד לא נשאלו" — כולם חייבים לעבור לעמודת "נשאלו" לפני שמסיימים.**',
+    '12. **כיסוי פסוקים — כלל ברזל:**\n'
+    + '   א) עבור לפי הסדר — א׳, ב׳, ג׳... אסור לדלג.\n'
+    + '   ב) אל תעבור לפסוק הבא עד שהתלמיד ענה נכון.\n'
+    + '   ג) כל הפסוקים ב"עוד לא נשאלו" חייבים לעבור לפני [סיום].',
 
     '13. **[סיום] ו-[בוחן] — חוקים קריטיים:**\n'
     + '   א) **לפני שכותבים [סיום] — עצור ובדוק את "עוד לא נשאלו".** אם הרשימה אינה ריקה — אסור מוחלט לכתוב [סיום]. המשך לפסוק הבא ברשימה.\n'
@@ -1466,9 +1439,7 @@ function buildSystemPrompt() {
     + '   ג) תשובות קצרות וברורות — משפט אחד לכל היותר.\n'
     + '   ד) X ב-[תשובות] = האות העברית של התשובה הנכונה (א/ב/ג/ד) — ללא רווחים נוספים.',
     '15. מונחים מקצועיים (ריבוי פעלים, מילה מנחה, ניגוד וכו\') — שאל תחילה מה הם.',
-    '16. **פרשנים:** כשאתה שואל על פרשן מסוים (רש"י, רמב"ן, אבן עזרא וכד\') — '
-    + 'חובה לצטט את לשון הפירוש המלא ולא לסכם אותו. '
-    + 'לאחר הציטוט תוכל לשאול מה התלמיד מבין ממנו.',
+    '16. **פרשנים:** ציטוט מדויק של לשון הפרשן — לא סיכום. ואז שאל מה התלמיד מבין.',
     '17. **שפה ואנרגיה:**\n'
     + '   א) שפה של בני נוער — חם, ישיר, אנרגטי. לא שפת ספר.\n'
     + '   ב) אימוגים: 1-2 לכל הודעה, לא יותר. דוגמאות: נכון 🔥 / שאלה 🤔 / עידוד 💪 / הפתעה 😮 / מעניין ✨\n'
@@ -1607,13 +1578,8 @@ window.selectMCOption = function(btnEl, optionText) {
   window.sendUserMessage();
 };
 
-/* ============================================================
-   Gemini API
-   ============================================================ */
-/* ============================================================
-   Gemini API  — דרך Cloudflare Worker (מגן על המפתח)
-   הגדירי את WORKER_URL אחרי העלאת ה-Worker:
-   ============================================================ */
+
+
 var WORKER_URL = 'https://tanach-gemini.racheli94.workers.dev';
 
 var GEMINI_DIRECT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent';
@@ -1677,9 +1643,7 @@ async function quickGeminiCall(prompt) {
   catch(e) { return 'לא ניתן לטעון הסבר.'; }
 }
 
-/* ============================================================
-   Message rendering
-   ============================================================ */
+
 function addAIMessage(text) {
   APP.messages.push({role:'assistant',content:text});
 
@@ -1846,9 +1810,7 @@ function renderAllMessages() {
   scrollChat();
 }
 
-/* ============================================================
-   Word Search
-   ============================================================ */
+
 window.searchWord = function(query) {
   var q = query.trim().replace(/[ְ-ׇ]/g,''); // strip nikud
   // Clear previous
@@ -1876,9 +1838,7 @@ window.clearSearch = function() {
   document.querySelectorAll('#bibleTextArea .word.search-hl').forEach(function(el){ el.classList.remove('search-hl'); });
 };
 
-/* ============================================================
-   Teacher Note
-   ============================================================ */
+
 function checkClassMessage() {
   if(!APP.db||!APP.classCode) return;
   APP.db.ref('classes/'+APP.classCode+'/classMessage').once('value', function(snap) {
@@ -2014,9 +1974,7 @@ function restoreScrollPos() {
   }
 }
 
-/* ============================================================
-   UI helpers
-   ============================================================ */
+
 function setWaiting(w) {
   APP.isWaiting=w;
   var typing=document.getElementById('typingIndicator');
@@ -2107,9 +2065,7 @@ function showFinished(msg) {
   document.getElementById('finishedBanner').style.display='flex';
 }
 
-/* ============================================================
-   Firebase sync — per chapter
-   ============================================================ */
+
 function syncToFirebase() {
   if(!APP.db||!APP.classCode||!APP.studentId||!APP.currentChapterId) return;
   var ch = APP.currentChapter || {};
@@ -2129,9 +2085,7 @@ function syncToFirebase() {
     .update(data).catch(function(e){ console.warn('Sync error:',e); });
 }
 
-/* ============================================================
-   Quiz logic
-   ============================================================ */
+
 var QUIZ_DATA = { questions:[], answers:[], userAnswers:[] };
 
 function parseAndShowQuiz(text) {
@@ -2363,9 +2317,7 @@ window.restartChapter = function() {
   startLearningApp();
 };
 
-/* ============================================================
-   Medal animation
-   ============================================================ */
+
 var MEDAL_EMOJIS = ['🏅','⭐','🌟','🎯','🏆'];
 function showBrilliantAnim() {
   var el = document.getElementById('medalAnim');
@@ -2376,9 +2328,7 @@ function showBrilliantAnim() {
   setTimeout(function(){ el.className=''; }, 2400);
 }
 
-/* ============================================================
-   Init
-   ============================================================ */
+
 window.addEventListener('DOMContentLoaded', async function() {
   await initFirebase();
   showScreen('login');
