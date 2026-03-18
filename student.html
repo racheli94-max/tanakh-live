@@ -21,7 +21,7 @@ body{font-family:'Heebo',sans-serif;background:var(--parchment);
     radial-gradient(ellipse 80% 60% at 15% 10%,rgba(196,154,34,.10) 0%,transparent 60%),
     radial-gradient(ellipse 60% 80% at 85% 90%,rgba(139,69,19,.08) 0%,transparent 60%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  color:var(--text-dark);direction:rtl;min-height:100vh;overflow:hidden;}
+  color:var(--text-dark);direction:rtl;min-height:100vh;}
 h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
 
 /* Shared */
@@ -97,7 +97,7 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
 .pp-dot.done{background:var(--success);}
 
 /* ===== CHAPTER PICKER ===== */
-#chapterPickerScreen{min-height:100vh;display:none;flex-direction:column;overflow:auto;}
+#chapterPickerScreen{min-height:100vh;display:none;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .picker-header{background:linear-gradient(90deg,var(--brown-deep),var(--brown-primary) 60%,var(--brown-medium));
   padding:14px 24px;display:flex;align-items:center;justify-content:space-between;
   border-bottom:2px solid var(--gold-deep);box-shadow:0 2px 12px rgba(40,15,0,.3);}
@@ -134,7 +134,7 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
 .no-ch-icon{font-size:48px;margin-bottom:16px;}
 
 /* ===== MAIN LEARNING APP ===== */
-#mainApp{display:none;flex-direction:column;height:100vh;overflow:hidden;}
+#mainApp{display:none;flex-direction:column;height:100vh;overflow:hidden;position:fixed;inset:0;}
 
 .app-header{background:linear-gradient(90deg,var(--brown-deep),var(--brown-primary) 60%,var(--brown-medium));
   padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -321,7 +321,6 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
 
 @media(max-width:700px){
   /* ── App shell ── */
-  body{overflow:hidden;}
   #mainAppScreen{display:flex;flex-direction:column;height:100vh;}
   #chapterPickerScreen{overflow-y:auto;-webkit-overflow-scrolling:touch;}
   .picker-content{padding:20px 16px;}
