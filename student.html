@@ -234,6 +234,7 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
   color:var(--text-medium);cursor:pointer;transition:all .2s;font-weight:500;}
 .btn-hint:hover{background:var(--gold-faint);color:var(--gold-deep);border-color:var(--gold);}
 .btn-dontknow:hover{background:rgba(139,69,19,.08);color:var(--brown-primary);}
+.btn-word:hover{background:rgba(45,90,84,.1);color:var(--brown-primary);}
 
 /* Bible panel */
 .bible-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;
@@ -633,6 +634,7 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
         <div class="action-buttons">
           <button class="btn-action btn-hint"     id="hintBtn"     onclick="window.askHint()">💡 רמז</button>
           <button class="btn-action btn-dontknow" id="dontKnowBtn" onclick="window.dontKnow()">🏳 אני לא יודע</button>
+          <button class="btn-action btn-word"     id="hardWordBtn" onclick="window.askHardWord()" title="בקש הסבר למילה קשה">📖 מילה קשה</button>
         </div>
       </div>
     </div>
@@ -1393,7 +1395,7 @@ function buildSystemPrompt() {
       (p.age ? '\nגיל: ' + p.age : '') +
       (p.interests && p.interests.length ? '\nתחומי עניין: ' + p.interests.join(', ') : '') +
       (p.freeText ? '\nעוד פרטים: ' + p.freeText : '') +
-      '\n**חובה:** הסבר קשיים ומושגים בדוגמאות מהעולם האישי שלו/ה. למשל, אם אוהב/ת כדורגל — השווה מצבים מהתנ"ך לכדורגל. פנה תמיד בלשון המגדר הנכונה.';
+      '\n**חובה לגבי דוגמאות:** קישור לתחביבים ולחיי התלמיד/ה — אבל רק כשהקישור אמיתי ומדויק, לא מאולץ. דוגמה טובה: חוסר (בילדים, בכסף, בהצלחה) = תחושה שכל אחד מכיר. דוגמה פחות טובה: להשוות ישר למשחק שלהם כשאין קשר. פנה תמיד בלשון המגדר הנכונה.';
   }
 
   return [
@@ -1426,14 +1428,14 @@ function buildSystemPrompt() {
 
     '5. תשובה חלקית: הכר במה שנכון ("נכון שX, אבל...") → שאל שאלת עזר מכוונת → רק אחרי שהתלמיד השלים — עבור הלאה.',
 
-    '6. "אני לא יודע": "אין בעיה, בואנו נסתכל ביחד 🔍" → ציטוט הפסוק → אותה שאלה כבחירה מרובה עם 4 אפשרויות הגיוניות.',
+    '6. "אני לא יודע": "אין בעיה, בואו נסתכל ביחד 🔍" → ציטוט הפסוק → אותה שאלה כבחירה מרובה עם 4 אפשרויות הגיוניות.',
 
     '7. רמז: רמז אחד ברור, לא יותר.',
 
-    '8. כיסוי פסוקים:\n'
-    + '   א) לפי הסדר בלבד — א\', ב\', ג\'... לעולם לא חוזרים אחורה לפסוקים קודמים.\n'
-    + '   ב) אסור לדלג על פסוק, גם אם נראה פחות חשוב.\n'
-    + '   ג) אל תעבור לפסוק הבא עד שהתלמיד ענה נכון.\n'
+    '8. כיסוי פסוקים (צעד: '+(ch.verseStep||1)+' פסוק/ים לכל שאלה):\n'
+    + '   א) לפי הסדר בלבד. לעולם לא חוזרים אחורה.\n'
+    + '   ב) כל שאלה מכסה '+(ch.verseStep||1)+' פסוק/ים ברצף — שאל שאלה אחת שמכסה את כולם.\n'
+    + '   ג) אסור לדלג. אל תעבור הלאה עד שהתלמיד ענה נכון.\n'
     + '   ד) תמיד בדוק: מה המספר הקטן ביותר ב"עוד לא נשאלו"? זה הפסוק הבא.',
 
     '9. כל 4 פסוקים — שאלת חיבור אחת: "מה הקשר בין פסוק א\' לפסוק ד\'?" — נחשבת כיסוי של הפסוקים הרלוונטיים.',
@@ -1456,9 +1458,10 @@ function buildSystemPrompt() {
     + '   [תשובות]:1-X,2-X,3-X,4-X,5-X\n'
     + '   קריטי: כל אפשרות חייבת טקסט מלא. לפי רמה: בסיס=5 הבנה. ביניים=3 הבנה+2 משמעות. מתקדם=2 הבנה+3 אמצעים.',
 
-    '14. שפה: בני נוער, חם, ישיר. 1-2 אימוגים להודעה. פתיחה אנרגטית: "היי! בואנו נצלול לפרק 🔥"',
+    '14. שפה: בני נוער, חם, ישיר. 1-2 אימוגים להודעה. פתיחה אנרגטית: "היי! בואו נצלול לפרק 🔥"',
+    '15. **הידעת + מילים קשות:**\n'    + '   א) פעם אחת בשיחה (לא יותר), הוסף "💡 הידעת?" עם עובדה מעניינת קצרה על מילה, דמות, או הקשר היסטורי — רק אם באמת מעשיר.\n'    + '   ב) כשתלמיד שואל על מילה קשה — הסבר את שורש המילה + משמעות בהקשר הפרק, במשפט אחד.',
     '',
-    'פתח בברכה קצרה ושאלה ראשונה.'
+    'פתיחת הפרק:\n'    + '   א) ברכה אנרגטית קצרה.\n'    + '   ב) הצג את הסיטואציה הכללית של הפרק במשפט אחד: "בפרק הזה נפגוש [דמות/מצב] ב[הקשר קצר]."\n'    + '   ג) שאל שאלת פתיחה על פסוק א\'.'
   ].join('\n');
 }
 async function startConversation() {
@@ -1550,6 +1553,25 @@ window.sendUserMessage = async function() {
       }
     }
   } catch(e) { addAIMessage('שגיאה: '+e.message+'. נסה שוב.'); }
+  setWaiting(false);
+};
+
+window.askHardWord = async function() {
+  if(APP.isWaiting||APP.finished) return;
+  var word = document.getElementById('userInput').value.trim();
+  var msg = word
+    ? 'הסבר לי את המילה "'+word+'" בפרק'
+    : 'יש לי מילה קשה בפסוק הזה — תסביר לי אותה';
+  document.getElementById('userInput').value = '';
+  window.autoResizeInput(document.getElementById('userInput'));
+  addUserMessage(msg);
+  APP.messages.push({role:'user', content:msg});
+  setWaiting(true);
+  try {
+    var reply = await callGemini(APP.messages);
+    addAIMessage(reply);
+    APP.messages.push({role:'assistant', content:reply});
+  } catch(e) { addAIMessage('שגיאה: '+e.message); }
   setWaiting(false);
 };
 
