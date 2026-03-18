@@ -1248,6 +1248,7 @@ window.openAddChapter = function() {
   document.getElementById('formLiterary').value='';
   document.getElementById('formVerseFrom').value='';
   document.getElementById('formVerseTo').value='';
+  document.getElementById('formVerseStep').value='1';
   document.getElementById('formCommentators').value='';
   document.getElementById('formGuidedQuestions').value='';
   document.getElementById('formCentralMessage').value='';
@@ -1267,6 +1268,7 @@ window.openEditChapter = function(cid) {
   document.getElementById('formLiterary').value=ch.literary||'';
   document.getElementById('formVerseFrom').value=ch.verseFrom||'';
   document.getElementById('formVerseTo').value=ch.verseTo||'';
+  document.getElementById('formVerseStep').value=ch.verseStep||'1';
   document.getElementById('formFolder').value=ch.folderId||'';
   document.getElementById('formCommentators').value=ch.commentators||'';
   document.getElementById('formGuidedQuestions').value=ch.guidedQuestions||'';
@@ -1299,6 +1301,7 @@ window.saveChapter = async function() {
   var data={book:book,chapter:parseInt(chapter),
     title:title||(book+' פרק '+chapter),summary:summary,literary:literary||'',
     verseFrom:verseFrom, verseTo:verseTo,
+    verseStep: parseInt(document.getElementById('formVerseStep').value)||1,
     folderId: document.getElementById('formFolder').value || null,
     commentators:    document.getElementById('formCommentators').value.trim() || '',
     guidedQuestions: document.getElementById('formGuidedQuestions').value.trim() || '',
@@ -2101,6 +2104,16 @@ window.addEventListener('DOMContentLoaded',async function(){
             </div>
           </div>
           <div style="font-size:11px;color:var(--text-light);margin-top:6px;">השאר ריק כדי ללמוד את כל הפרק. לדוגמה: פסוק 1 עד 15.</div>
+        </div>
+        <div class="form-group">
+          <label>כמה פסוקים בכל שאלה?</label>
+          <select id="formVerseStep"
+            style="width:100%;padding:9px 13px;border:1.5px solid var(--border-gold);border-radius:var(--radius);font-family:'Heebo',sans-serif;font-size:14px;background:rgba(255,252,240,.85);direction:rtl;outline:none;">
+            <option value="1">פסוק אחד — שאלה על כל פסוק בנפרד</option>
+            <option value="2">2 פסוקים — שאלה על כל זוג פסוקים</option>
+            <option value="3">3 פסוקים — שאלה על כל שלישייה</option>
+          </select>
+          <div style="font-size:11px;color:var(--text-light);margin-top:4px;">לפרקים ארוכים — 2-3 פסוקים מאפשרים קצב נוח יותר לתלמיד.</div>
         </div>
         <div class="form-group">
           <label>כותרת מותאמת (אופציונלי)</label>
