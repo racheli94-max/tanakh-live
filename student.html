@@ -323,6 +323,8 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
   /* ── App shell ── */
   body{overflow:hidden;}
   #mainAppScreen{display:flex;flex-direction:column;height:100vh;}
+  #chapterPickerScreen{overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .picker-content{padding:20px 16px;}
 
   /* ── Header — compact ── */
   .app-header{padding:8px 12px;flex-shrink:0;}
@@ -1429,7 +1431,11 @@ function buildSystemPrompt() {
 
     '7. רמז: רמז אחד ברור, לא יותר.',
 
-    '8. כיסוי פסוקים — לפי הסדר א\', ב\', ג\'... אסור לדלג. אל תעבור לפסוק הבא עד שהתלמיד ענה נכון.',
+    '8. כיסוי פסוקים:\n'
+    + '   א) לפי הסדר בלבד — א\', ב\', ג\'... לעולם לא חוזרים אחורה לפסוקים קודמים.\n'
+    + '   ב) אסור לדלג על פסוק, גם אם נראה פחות חשוב.\n'
+    + '   ג) אל תעבור לפסוק הבא עד שהתלמיד ענה נכון.\n'
+    + '   ד) תמיד בדוק: מה המספר הקטן ביותר ב"עוד לא נשאלו"? זה הפסוק הבא.',
 
     '9. כל 4 פסוקים — שאלת חיבור אחת: "מה הקשר בין פסוק א\' לפסוק ד\'?" — נחשבת כיסוי של הפסוקים הרלוונטיים.',
 
