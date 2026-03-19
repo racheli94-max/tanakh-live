@@ -1558,12 +1558,20 @@ window.sendUserMessage = async function() {
 
 window.askHardWord = async function() {
   if(APP.isWaiting||APP.finished) return;
-  var word = document.getElementById('userInput').value.trim();
-  var msg = word
-    ? 'הסבר לי את המילה "'+word+'" בפרק'
-    : 'יש לי מילה קשה בפסוק הזה — תסביר לי אותה';
-  document.getElementById('userInput').value = '';
-  window.autoResizeInput(document.getElementById('userInput'));
+  var input = document.getElementById('userInput');
+  var word = input.value.trim();
+  if(!word) {
+    // No word typed — prompt the student to type it
+    input.placeholder = 'כתוב את המילה הקשה כאן...';
+    input.focus();
+    showToast('כתוב את המילה שקשה לך ואז לחץ שוב 📖');
+    return;
+  }
+  // Student typed a word — send it
+  var msg = 'הסבר לי את המילה "'+word+'"';
+  input.value = '';
+  input.placeholder = 'כתוב את תשובתך כאן...';
+  window.autoResizeInput(input);
   addUserMessage(msg);
   APP.messages.push({role:'user', content:msg});
   setWaiting(true);
