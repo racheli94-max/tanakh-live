@@ -228,10 +228,12 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
   display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;
   box-shadow:0 2px 8px rgba(60,20,0,.2);}
 .btn-send:hover{transform:scale(1.05);}.btn-send:disabled{opacity:.4;cursor:not-allowed;transform:none;}
-.action-buttons{display:flex;gap:8px;}
-.btn-action{flex:1;padding:7px 10px;border-radius:8px;border:1.5px solid var(--border);
+.action-buttons{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;}
+.action-buttons::-webkit-scrollbar{display:none;}
+.btn-action{flex:none;padding:7px 12px;border-radius:8px;border:1.5px solid var(--border);
   background:rgba(255,252,240,.7);font-family:'Heebo',sans-serif;font-size:12.5px;
-  color:var(--text-medium);cursor:pointer;transition:all .2s;font-weight:500;}
+  color:var(--text-medium);cursor:pointer;transition:all .2s;font-weight:500;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;}
 .btn-hint:hover{background:var(--gold-faint);color:var(--gold-deep);border-color:var(--gold);}
 .btn-dontknow:hover{background:rgba(139,69,19,.08);color:var(--brown-primary);}
 .btn-word:hover{background:rgba(45,90,84,.1);color:var(--brown-primary);}
@@ -623,7 +625,7 @@ h1,h2,h3{font-family:'Frank Ruhl Libre',serif;}
           <div class="typing-label">מורה AI חושב...</div>
         </div>
       </div>
-      <div class="input-area">
+      <div class="input-area" id="inputArea">
         <div style="font-size:11px;color:var(--text-light);text-align:left;margin-bottom:2px"><span id="charCount">0</span>/400</div>
       <div class="input-row">
           <textarea id="userInput" placeholder="כתוב את תשובתך כאן..." rows="1" maxlength="400"
@@ -1257,7 +1259,35 @@ window.onWordClick = async function(event, word, root) {
   if (y + 90 > window.innerHeight) tip.style.top = Math.max(8, y - 90) + 'px';
 
   try {
-    var exp = await quickGeminiCall('הסבר בקצרה (1-2 משפטים בעברית פשוטה) את המילה "'+word+'" בהקשר התנ"כי. ציין אם היא מופיעה '+count+' פעמים — האם זה משמעותי? רק ההסבר, ללא כותרת.');
+    // Build context: which verse is highlighted + the verse text
+    var verseNum = null;
+    var verseText = '';
+    var hlVerse = document.querySelector('#bibleTextArea .verse-item.highlighted, #bibleTextArea .word.word-hl');
+    // Find which verse the clicked word belongs to
+    var clickedEl = event.target;
+    var verseItem = clickedEl.closest ? clickedEl.closest('.verse-item') : null;
+    if(verseItem) {
+      var numEl = verseItem.querySelector('.verse-num');
+      if(numEl) verseNum = numEl.textContent.trim();
+      var textEl = verseItem.querySelector('.verse-text');
+      if(textEl) verseText = textEl.textContent.trim().substring(0, 80);
+    }
+
+    var contextStr = verseNum
+      ? 'הפסוק: פסוק ' + verseNum + ' — "' + verseText + (verseText.length >= 80 ? '..."' : '"')
+      : 'ספר: '+(APP.currentChapter&&APP.currentChapter.book||'')+', פרק '+(APP.currentChapter&&APP.currentChapter.chapter||'');
+
+    var prompt =
+      'ספר: '+(APP.currentChapter&&APP.currentChapter.book||'')+', פרק '+(APP.currentChapter&&APP.currentChapter.chapter||'')+'.\n' +
+      contextStr + '\n' +
+      'המילה שנלחצה: "' + word + '" (מופיעה ' + count + ' פעמים בפרק).\n\n' +
+      'הסבר בעברית פשוטה (1-2 משפטים):\n' +
+      '1. מה המשמעות של המילה **בפסוק הזה ספציפית** — לא הגדרת מילון כללית.\n' +
+      '2. אם יש כמה משמעויות אפשריות — ציין ואמור איזו מתאימה כאן ולמה.\n' +
+      '3. אם המילה חוזרת ' + count + ' פעמים — ציין אם זה מילת מנחה.\n' +
+      'רק ההסבר, ללא כותרות.';
+
+    var exp = await quickGeminiCall(prompt);
     tip.textContent = exp;
     if (y + 100 > window.innerHeight) tip.style.top = Math.max(8, y - 100) + 'px';
   } catch(e) { tip.textContent = 'לא ניתן לטעון הסבר.'; }
@@ -1561,12 +1591,24 @@ window.askHardWord = async function() {
   var input = document.getElementById('userInput');
   var word = input.value.trim();
   if(!word) {
-    // No word typed — prompt the student to type it
-    input.placeholder = 'כתוב את המילה הקשה כאן...';
+    // No word typed — show hint message in chat instead
+    input.placeholder = 'כתוב את המילה הקשה כאן ולחץ שוב...';
     input.focus();
-    showToast('כתוב את המילה שקשה לך ואז לחץ שוב 📖');
+    // Show a brief tip in the chat area
+    var tipEl = document.getElementById('hardWordTip');
+    if(!tipEl) {
+      tipEl = document.createElement('div');
+      tipEl.id = 'hardWordTip';
+      tipEl.style.cssText = 'font-size:12px;color:var(--text-light);text-align:center;padding:4px 8px;background:rgba(196,154,34,.08);border-radius:6px;margin:2px 0;';
+      tipEl.textContent = '📖 כתוב מילה קשה בשדה ולחץ שוב';
+      var area = document.getElementById('inputArea');
+      if(area) area.insertBefore(tipEl, area.firstChild);
+    }
+    setTimeout(function(){ if(tipEl) tipEl.remove(); }, 3000);
     return;
   }
+  var tipEl = document.getElementById('hardWordTip');
+  if(tipEl) tipEl.remove();
   // Student typed a word — send it
   var msg = 'הסבר לי את המילה "'+word+'"';
   input.value = '';
