@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ללמוד.תנ"ך — מורה AI לכל תלמיד</title>
+<meta name="description" content="תנו לכל תלמיד מורה AI אישי לתנ"ך. שואל, מסביר, מוביל לבוחן — אתם רואים הכל בזמן אמת.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700;900&family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gd:#1e3a36;--gm:#2d5a54;--gl:#457974;
+  --gold:#b8900a;--gold-l:#d4aa3a;--gold-f:#f5e8c4;--gold-d:#8b6820;
+  --paper:#f8f4e8;--paper2:#f2e8d0;
+  --tx:#1a2e2a;--tm:#2d5a54;--tl:#5a8a82;
+  --r:12px;--rl:20px;
+  --success:#2d6e3a;--danger:#8b1a1a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:"Heebo",sans-serif;background:var(--paper);color:var(--tx);direction:rtl;overflow-x:hidden;}
+h1,h2,h3,h4{font-family:"Frank Ruhl Libre",serif;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(30,58,54,.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(184,144,10,.25);}
+.nav-in{max-width:1100px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo img{height:32px;}
+.nav-logo-txt{font-family:"Frank Ruhl Libre",serif;font-size:18px;color:var(--gold-l);font-weight:700;}
+.nav-btn{background:linear-gradient(135deg,var(--gold-l),var(--gold));color:var(--gd);padding:8px 20px;border-radius:20px;font-size:14px;font-weight:700;text-decoration:none;transition:opacity .2s;white-space:nowrap;}
+.nav-btn:hover{opacity:.85;}
+
+/* HERO */
+.hero{background:linear-gradient(160deg,var(--gd) 0%,var(--gm) 55%,#2a5040 100%);padding:64px 24px 0;overflow:hidden;}
+.hero-in{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;}
+.hero-text{padding-bottom:64px;}
+.badge{display:inline-block;background:rgba(212,170,58,.18);border:1px solid rgba(212,170,58,.4);color:var(--gold-l);font-size:12px;font-weight:700;padding:4px 14px;border-radius:20px;margin-bottom:18px;letter-spacing:.5px;}
+.hero h1{font-size:clamp(32px,3.8vw,52px);color:#fff;line-height:1.1;margin-bottom:14px;font-weight:900;}
+.hero h1 em{color:var(--gold-l);font-style:normal;}
+.hero-sub{font-size:clamp(15px,1.6vw,17px);color:rgba(255,255,255,.72);line-height:1.75;margin-bottom:30px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;}
+.btn-gold{background:linear-gradient(135deg,var(--gold-l),var(--gold));color:var(--gd);padding:13px 28px;border-radius:var(--r);font-family:"Frank Ruhl Libre",serif;font-size:16px;font-weight:700;text-decoration:none;box-shadow:0 4px 18px rgba(184,144,10,.4);transition:transform .2s;}
+.btn-gold:hover{transform:translateY(-2px);}
+.btn-ghost{border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.82);padding:12px 22px;border-radius:var(--r);font-size:15px;font-weight:600;text-decoration:none;transition:border-color .2s;}
+.btn-ghost:hover{border-color:rgba(255,255,255,.65);}
+
+/* ANIMATED SCREEN MOCKUP */
+.screen-wrap{position:relative;padding-bottom:56px;}
+.screen-frame{background:rgba(0,0,0,.35);border-radius:var(--rl);padding:12px;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08);}
+.screen-bar{display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:0 4px;}
+.screen-dot{width:8px;height:8px;border-radius:50%;}
+.screen-dot:nth-child(1){background:#ff5f57;}
+.screen-dot:nth-child(2){background:#febc2e;}
+.screen-dot:nth-child(3){background:#28c840;}
+.screen-url{flex:1;background:rgba(255,255,255,.1);border-radius:4px;padding:3px 10px;font-size:10px;color:rgba(255,255,255,.4);text-align:center;}
+.screen-content{background:linear-gradient(160deg,#1e3a36,#2d5a54);border-radius:10px;overflow:hidden;min-height:420px;display:grid;grid-template-columns:42% 58%;}
+/* Chat side */
+.mock-chat{border-left:1.5px solid rgba(184,144,10,.2);display:flex;flex-direction:column;background:linear-gradient(175deg,#fdf8ee,#f5e8d0);}
+.mock-chat-hdr{background:linear-gradient(90deg,var(--gd),var(--gm));padding:8px 12px;font-family:"Frank Ruhl Libre",serif;font-size:11px;color:var(--gold-l);font-weight:700;display:flex;align-items:center;gap:6px;}
+.mock-msgs{flex:1;padding:10px;display:flex;flex-direction:column;gap:7px;overflow:hidden;}
+.mock-msg{max-width:90%;}
+.mock-msg.ai{align-self:flex-end;}
+.mock-msg.us{align-self:flex-start;}
+.mock-bbl{padding:7px 10px;border-radius:10px;font-size:10.5px;line-height:1.55;}
+.mock-msg.ai .mock-bbl{background:linear-gradient(135deg,#fff8e8,#f5e8c8);border:1px solid rgba(184,144,10,.25);border-radius:10px 10px 3px 10px;color:#1a2e2a;}
+.mock-msg.us .mock-bbl{background:linear-gradient(135deg,#2d5a54,#1e3a36);color:#f5e8c4;border-radius:10px 10px 10px 3px;}
+.mock-vrs{background:rgba(184,144,10,.1);border-right:2px solid var(--gold);padding:3px 7px;margin-bottom:5px;font-size:9.5px;color:var(--gold-d);font-family:"Frank Ruhl Libre",serif;border-radius:0 4px 4px 0;}
+.mock-input{padding:8px 10px;border-top:1px solid rgba(184,144,10,.2);background:rgba(255,252,240,.8);display:flex;gap:6px;align-items:center;}
+.mock-input-box{flex:1;background:rgba(255,252,240,.9);border:1.5px solid rgba(184,144,10,.3);border-radius:8px;padding:5px 9px;font-size:9.5px;color:var(--tl);}
+.mock-send{width:26px;height:26px;background:linear-gradient(135deg,var(--gm),var(--gd));border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--gold-l);font-size:11px;}
+/* Bible side */
+.mock-bible{padding:10px;overflow-y:auto;max-height:380px;}
+.mock-bible-title{font-family:"Frank Ruhl Libre",serif;font-size:12px;color:var(--gold-l);font-weight:700;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(184,144,10,.2);}
+.mock-verse{display:flex;gap:6px;margin-bottom:7px;padding:5px 6px;border-radius:5px;}
+.mock-verse.hl{background:rgba(212,170,58,.2);border:1px solid rgba(184,144,10,.3);}
+.mock-vnum{font-size:9px;font-weight:700;color:var(--gold-l);background:rgba(212,170,58,.15);padding:1px 5px;border-radius:3px;min-width:22px;text-align:center;height:fit-content;margin-top:1px;}
+.mock-vtxt{font-family:"Frank Ruhl Libre",serif;font-size:11px;color:rgba(255,255,255,.82);line-height:1.6;}
+.mock-word-hl{background:rgba(212,170,58,.4);border-radius:2px;padding:0 1px;color:#fff;}
+/* Typing dots */
+.mock-typing{align-self:flex-end;display:flex;align-items:center;gap:4px;padding:7px 10px;background:linear-gradient(135deg,#fff8e8,#f5e8c8);border:1px solid rgba(184,144,10,.25);border-radius:10px 10px 3px 10px;max-width:90%;}
+.mock-dot{width:5px;height:5px;border-radius:50%;background:var(--gold-d);animation:mdb .9s ease infinite;}
+.mock-dot:nth-child(2){animation-delay:.18s;}
+.mock-dot:nth-child(3){animation-delay:.36s;}
+@keyframes mdb{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+/* Animated messages */
+.mock-msg{opacity:0;transform:translateY(6px);animation:msgIn .4s ease forwards;}
+@keyframes msgIn{to{opacity:1;transform:translateY(0)}}
+
+/* STATS STRIP */
+.stats-strip{background:rgba(0,0,0,.25);border-top:1px solid rgba(184,144,10,.15);}
+.stats-in{max-width:1100px;margin:0 auto;padding:20px 24px;display:flex;gap:0;justify-content:space-around;}
+.stat{text-align:center;padding:0 16px;border-left:1px solid rgba(184,144,10,.15);}
+.stat:last-child{border:none;}
+.stat-n{font-family:"Frank Ruhl Libre",serif;font-size:28px;font-weight:700;color:var(--gold-l);}
+.stat-l{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
+
+/* SECTIONS */
+section{padding:64px 24px;}
+.sec{max-width:1100px;margin:0 auto;}
+.sec-tag{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.sec-title{font-size:clamp(24px,3vw,36px);color:var(--gd);margin-bottom:12px;line-height:1.2;}
+.sec-sub{font-size:15px;color:var(--tl);line-height:1.7;max-width:560px;}
+
+/* PROBLEM */
+.prob{background:var(--paper2);}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:36px;}
+.pcard{background:rgba(255,255,255,.75);border:1.5px solid rgba(184,144,10,.18);border-radius:var(--r);padding:20px;text-align:center;}
+.pcard-i{font-size:32px;margin-bottom:8px;}
+.pcard-t{font-family:"Frank Ruhl Libre",serif;font-size:15px;color:var(--gd);font-weight:700;margin-bottom:5px;}
+.pcard-d{font-size:12.5px;color:var(--tl);line-height:1.55;}
+
+/* STEPS */
+.steps{position:relative;margin-top:44px;display:flex;flex-direction:column;}
+.steps::before{content:"";position:absolute;right:26px;top:27px;bottom:27px;width:2px;background:linear-gradient(180deg,var(--gold-l),rgba(184,144,10,.05));border-radius:2px;}
+.step{display:flex;gap:20px;padding:22px 0;border-bottom:1px solid rgba(184,144,10,.1);}
+.step:last-child{border:none;}
+.step-n{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--gd),var(--gm));color:var(--gold-l);font-family:"Frank Ruhl Libre",serif;font-size:19px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(30,58,54,.22);position:relative;z-index:1;}
+.step-body{flex:1;padding-top:4px;}
+.step-t{font-family:"Frank Ruhl Libre",serif;font-size:18px;color:var(--gd);font-weight:700;margin-bottom:4px;}
+.step-d{font-size:13.5px;color:var(--tm);line-height:1.65;}
+.step-tag{display:inline-block;background:rgba(184,144,10,.1);color:var(--gold-d);font-size:10px;font-weight:700;padding:2px 9px;border-radius:9px;margin-top:6px;}
+
+/* TEACHER DASHBOARD */
+.dash-sec{background:linear-gradient(160deg,var(--gd),var(--gm));}
+.dash-sec .sec-title{color:#fff;}
+.dash-sec .sec-sub{color:rgba(255,255,255,.65);}
+.dash-sec .sec-tag{color:var(--gold-l);}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:40px;}
+.dash-mock{background:rgba(255,252,240,.97);border-radius:var(--rl);overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.35);}
+.dash-hdr{background:linear-gradient(90deg,var(--gd),var(--gm));padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
+.dash-hdr-title{font-family:"Frank Ruhl Libre",serif;font-size:13px;color:var(--gold-l);font-weight:700;}
+.dash-body{padding:14px;display:flex;flex-direction:column;gap:8px;}
+.dash-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(248,244,232,.8);border:1px solid rgba(184,144,10,.15);border-radius:8px;}
+.dash-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.dash-av-g{background:rgba(45,90,84,.15);}
+.dash-av-r{background:rgba(139,26,26,.12);}
+.dash-av-b{background:rgba(184,144,10,.12);}
+.dash-info{flex:1;}
+.dash-name{font-size:12px;font-weight:600;color:var(--gd);}
+.dash-chapter{font-size:10.5px;color:var(--tl);margin-top:1px;}
+.dash-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.dash-pct{font-family:"Frank Ruhl Libre",serif;font-size:14px;font-weight:700;color:var(--gm);}
+.dash-prog{width:60px;height:4px;background:rgba(184,144,10,.12);border-radius:3px;overflow:hidden;}
+.dash-prog-in{height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold-l));border-radius:3px;}
+.tag-help{background:rgba(139,26,26,.1);color:var(--danger);font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px;}
+.tag-done{background:rgba(45,110,58,.1);color:var(--success);font-size:10px;font-weight:700;padding:2px 7px;border-radius:9px;animation:pulse 1.5s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
+.dash-features{display:flex;flex-direction:column;gap:12px;}
+.df{display:flex;gap:12px;align-items:flex-start;padding:14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(184,144,10,.22);border-radius:var(--r);}
+.df-icon{font-size:22px;flex-shrink:0;}
+.df-title{font-family:"Frank Ruhl Libre",serif;font-size:14px;color:var(--gold-l);font-weight:700;margin-bottom:3px;}
+.df-desc{font-size:12.5px;color:rgba(255,255,255,.62);line-height:1.5;}
+
+/* FEATURES */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-top:38px;}
+.fcard{background:#fff;border:1.5px solid rgba(184,144,10,.15);border-radius:var(--r);padding:22px;transition:transform .2s,box-shadow .2s;}
+.fcard:hover{transform:translateY(-3px);box-shadow:0 7px 20px rgba(30,58,54,.1);}
+.fc-icon{font-size:28px;margin-bottom:9px;}
+.fc-t{font-family:"Frank Ruhl Libre",serif;font-size:16px;color:var(--gd);font-weight:700;margin-bottom:4px;}
+.fc-d{font-size:13px;color:var(--tl);line-height:1.6;}
+
+/* TESTIMONIALS */
+.testi{background:var(--paper2);}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:38px;}
+.qcard{background:#fff;border:1.5px solid rgba(184,144,10,.15);border-radius:var(--r);padding:24px;}
+.qmark{font-family:"Frank Ruhl Libre",serif;font-size:52px;color:var(--gold-f);line-height:.6;margin-bottom:9px;display:block;}
+.qt{font-size:14px;color:var(--tm);line-height:1.75;margin-bottom:14px;font-style:italic;}
+.qa{font-size:12px;font-weight:600;color:var(--gm);}
+.qr{font-size:11px;color:var(--tl);margin-top:2px;}
+
+/* CTA */
+.cta{background:linear-gradient(160deg,var(--gd),var(--gm));text-align:center;padding:80px 24px;}
+.cta h2{color:#fff;font-size:clamp(26px,3.5vw,40px);margin-bottom:11px;}
+.cta>p{color:rgba(255,255,255,.65);font-size:16px;margin-bottom:34px;max-width:460px;margin-left:auto;margin-right:auto;}
+.cta-box{background:rgba(255,255,255,.07);border:1.5px solid rgba(184,144,10,.28);border-radius:var(--rl);padding:28px;max-width:480px;margin:0 auto;}
+.cta-t{font-family:"Frank Ruhl Libre",serif;font-size:20px;color:var(--gold-l);margin-bottom:5px;}
+.cta-s{font-size:12.5px;color:rgba(255,255,255,.5);margin-bottom:18px;}
+.cta-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;text-align:right;}
+.cs{display:flex;gap:10px;align-items:center;color:rgba(255,255,255,.72);font-size:13px;}
+.csn{width:21px;height:21px;border-radius:50%;background:rgba(184,144,10,.28);color:var(--gold-l);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+footer{background:var(--gd);padding:22px;text-align:center;font-size:11px;color:rgba(255,255,255,.35);letter-spacing:1px;border-top:1px solid rgba(184,144,10,.1);}
+
+@media(max-width:720px){
+  .hero-in{grid-template-columns:1fr;}
+  .screen-wrap{display:none;}
+  .hero-text{padding-bottom:40px;}
+  .hero{padding:50px 18px 0;}
+  section{padding:50px 18px;}
+  .dash-grid{grid-template-columns:1fr;}
+  .steps::before{display:none;}
+  .stats-in{flex-wrap:wrap;gap:16px;}
+  nav{position:relative;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <a class="nav-logo" href="#">
+      <img src="logo.png" alt="ללמוד.תנ״ך">
+      <span class="nav-logo-txt">ללמוד.תנ"ך</span>
+    </a>
+    <a class="nav-btn" href="#cta-section">הצטרפי לפיילוט ←</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-in">
+    <div class="hero-text">
+      <div class="badge">✦ פיילוט חינמי — כיתה אחת, עד 30 תלמידים</div>
+      <h1>לכל תלמיד<br><em>מורה תנ"ך</em><br>משלו</h1>
+      <p class="hero-sub">מורה AI שמנהל שיחה אמיתית עם כל תלמיד — על כל פסוק, לפי הרמה שלו, בשפה שלו. אתם רואים מה קורה בזמן אמת.</p>
+      <div class="hero-btns">
+        <a href="mailto:contact@lalmod.co.il?subject=מעוניין בפיילוט" class="btn-gold">🎓 הצטרף לפיילוט חינמי</a>
+        <a href="#how" class="btn-ghost">איך זה עובד? ↓</a>
+      </div>
+    </div>
+
+    <!-- Animated screen mockup -->
+    <div class="screen-wrap">
+      <div class="screen-frame">
+        <div class="screen-bar">
+          <div class="screen-dot"></div><div class="screen-dot"></div><div class="screen-dot"></div>
+          <div class="screen-url">lalmod.tanach.co.il/student</div>
+        </div>
+        <div class="screen-content">
+          <!-- Chat -->
+          <div class="mock-chat">
+            <div class="mock-chat-hdr">🤖 מורה AI — שמואל א' פרק א'</div>
+            <div class="mock-msgs" id="mockMsgs">
+              <div class="mock-msg ai" style="animation-delay:.2s">
+                <div class="mock-bbl">
+                  היי נועה! בואו נצלול לפרק 🔥<br>
+                  בפרק הזה נפגוש את חנה — אישה שחיה עם כאב עמוק שנים רבות.
+                  <div class="mock-vrs" style="margin-top:6px;">פסוק ו': "וְכִעֲסַתָּה צָרָתָהּ גַּם-כַּעַס"</div>
+                  מה לדעתך מרגישה חנה כשפנינה מתגרה בה כל שנה מחדש?
+                </div>
+              </div>
+              <div class="mock-msg us" style="animation-delay:.9s"><div class="mock-bbl">עצובה, ואולי כועסת גם על אלקנה שלא מבין</div></div>
+              <div class="mock-msg ai" style="animation-delay:1.6s">
+                <div class="mock-bbl">
+                  יפה מאוד! 💪 שמת לב לדבר שהרבה מפספסים — אלקנה מנסה לנחם אבל לא ממש מצליח.<br>
+                  💡 זה קצת כמו שחקן שמפסיד משחק חשוב — אפשר לנחם אותו בכסף, אבל זה לא מה שחסר לו באמת.
+                  <div class="mock-vrs" style="margin-top:6px;">פסוק ח': "וַיֹּאמֶר לָהּ אֶלְקָנָה... הֲלֹא אָנֹכִי טוֹב לָךְ"</div>
+                  אלקנה אומר "הלא אנוכי טוב לך מעשרה בנים" — מה לדעתך חסר לו כדי להבין את חנה?
+                </div>
+              </div>
+              <div class="mock-typing" style="animation-delay:2.2s;animation:msgIn .4s 2.2s ease forwards;opacity:0">
+                <div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div>
+              </div>
+            </div>
+            <div class="mock-input">
+              <div class="mock-input-box">כתוב תשובה...</div>
+              <div class="mock-send">➤</div>
+            </div>
+          </div>
+          <!-- Bible -->
+          <div class="mock-bible">
+            <div class="mock-bible-title">📜 שמואל א', פרק א'</div>
+            <div class="mock-verse"><div class="mock-vnum">ה</div><div class="mock-vtxt">וּלְחַנָּה יִתֵּן מָנָה אַחַת אַפָּיִם כִּי אֶת-חַנָּה אָהֵב...</div></div>
+            <div class="mock-verse"><div class="mock-vnum">ו</div><div class="mock-vtxt">וְכִעֲסַתָּה צָרָתָהּ גַּם-כַּעַס בַּעֲבוּר הַרְּעִמָהּ...</div></div>
+            <div class="mock-verse hl"><div class="mock-vnum">ז</div><div class="mock-vtxt">וְכֵן יַעֲשֶׂה שָׁנָה בְשָׁנָה מִדֵּי עֲלֹתָהּ בְּבֵית ה'...</div></div>
+            <div class="mock-verse hl"><div class="mock-vnum">ח</div><div class="mock-vtxt">וַיֹּאמֶר לָהּ אֶלְקָנָה אִישָׁהּ חַנָּה לָמֶּה תִבְכִּי...</div></div>
+            <div class="mock-verse"><div class="mock-vnum">ט</div><div class="mock-vtxt">וַתָּקָם חַנָּה אַחֲרֵי אָכְלָה בְשִׁלֹה וְאַחֲרֵי שָׁתֹה...</div></div>
+            <div class="mock-verse hl"><div class="mock-vnum">י</div><div class="mock-vtxt">וְהִיא <span class="mock-word-hl">מָרַת נָפֶשׁ</span> וַתִּתְפַּלֵּל עַל-ה' וּבָכֹה תִבְכֶּה</div></div>
+            <!-- מרת נפש tooltip -->
+            <div style="background:linear-gradient(160deg,#fffbee,#f5e8c4);border:1.5px solid rgba(184,144,10,.5);border-radius:8px;padding:7px 10px;margin:3px 4px 6px;animation:msgIn .4s 1.8s ease forwards;opacity:0;box-shadow:0 3px 10px rgba(40,15,0,.18);">
+              <div style="font-family:'Frank Ruhl Libre',serif;font-size:11px;font-weight:700;color:#1e3a36;margin-bottom:3px;">מָרַת נָפֶשׁ</div>
+              <div style="font-size:9.5px;color:#2d5a54;line-height:1.55;">מרירות עמוקה בנשמה — לא רק עצב, אלא כאב שמילא אותה מבפנים לגמרי.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stats-in">
+      <div class="stat"><div class="stat-n">100%</div><div class="stat-l">פנייה אישית לכל תלמיד</div></div>
+      <div class="stat"><div class="stat-n">24/7</div><div class="stat-l">זמין לחזרה לבגרות</div></div>
+      <div class="stat"><div class="stat-n">5 דק'</div><div class="stat-l">הכנת פרק ראשון</div></div>
+      <div class="stat"><div class="stat-n">כל</div><div class="stat-l">רמה וכיתה</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="prob">
+  <div class="sec">
+    <div class="sec-tag">האתגר</div>
+    <h2 class="sec-title">אתגרים שכל מורה לתנ"ך מכיר</h2>
+    <p class="sec-sub">פערים עצומים בין תלמידים, מעט זמן, וקשה לדעת מי באמת הבין — כל זה בכיתה אחת.</p>
+    <div class="pgrid">
+      <div class="pcard"><div class="pcard-i">📊</div><div class="pcard-t">רמות שונות בכיתה</div><div class="pcard-d">חלק כבר יודע, חלק עוד לא קרא — ולכולם אותו שיעור</div></div>
+      <div class="pcard"><div class="pcard-i">📜</div><div class="pcard-t">הטקסט המקראי מאתגר</div><div class="pcard-d">תלמידים מתקשים להתמודד עם השפה, המבנה והמושגים בפני עצמם</div></div>
+      <div class="pcard"><div class="pcard-i">🤐</div><div class="pcard-t">לא שואלים כשלא מבינים</div><div class="pcard-d">תלמיד שקט לא בהכרח הבין — ומורה לא תמיד יודע איפה הפרצה</div></div>
+      <div class="pcard"><div class="pcard-i">🎯</div><div class="pcard-t">חזרה לבגרות בין השיעורים</div><div class="pcard-d">כל תלמיד צריך לחזור על פרקים שונים — אי אפשר לעשות את זה יחד</div></div>
+      <div class="pcard"><div class="pcard-i">🔍</div><div class="pcard-t">קשה לדעת מה המצב</div><div class="pcard-d">המורה לא יודע מה כל תלמיד הבין או לא הבין עד שרואה את הבחינה</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section id="how">
+  <div class="sec">
+    <div class="sec-tag">איך זה עובד</div>
+    <h2 class="sec-title">המורה מגדיר פעם אחת. התלמידים לומדים בקצב שלהם.</h2>
+    <p class="sec-sub">חמישה שלבים פשוטים, מהגדרת הפרק ועד ציון הבוחן</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">א</div>
+        <div class="step-body">
+          <div class="step-t">המורה מגדיר פרק</div>
+          <div class="step-d">המורה כותב <strong>סיכום הפרק</strong> בנוסח שלו — אירועים, דמויות, מה חשוב שהתלמיד יבין. אפשר להוסיף <strong>אמצעים ספרותיים ופרשנים</strong> ספציפיים שרוצה שיעלו בשיחה, ו<strong>מסר מרכזי</strong> שהתלמיד יגיע אליו בעצמו. ה-AI ישתמש בכל זה לאורך כל השיחה.</div>
+          <span class="step-tag">5 דקות הכנה בלבד</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">ב</div>
+        <div class="step-body">
+          <div class="step-t">התלמיד נכנס מהמחשב או הפלאפון</div>
+          <div class="step-d">ממלא פרופיל קצר (גיל, תחביבים) — ה-AI ישתמש בו כדי לדבר בשפה שלו, עם דוגמאות מחייו.</div>
+          <span class="step-tag">מחשב ופלאפון</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">ג</div>
+        <div class="step-body">
+          <div class="step-t">שיחה אמיתית על כל פסוק</div>
+          <div class="step-d">מורה AI שואל, מסביר, מכוון — לא עובר הלאה עד שהתלמיד הבין. <strong>לחיצה על כל מילה בטקסט</strong> מציגה הסבר מיידי בהקשר הפסוק הספציפי — לא הגדרת מילון, אלא משמעות המילה כאן ועכשיו.</div>
+          <span class="step-tag">מותאם אישית לכל תלמיד</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">ד</div>
+        <div class="step-body">
+          <div class="step-t">בוחן אוטומטי</div>
+          <div class="step-d">5 שאלות מותאמות לרמת התלמיד — תוכן, משמעות, אמצעים ספרותיים. הציון נשמר אוטומטית.</div>
+          <span class="step-tag">בסיס / ביניים / מתקדם</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">ה</div>
+        <div class="step-body">
+          <div class="step-t">המורה רואה הכל</div>
+          <div class="step-d">לוח מחוונים בזמן אמת: מי ענה, מי תקוע, מי זקוק לעזרה. הערות לתלמיד, הודעה לכיתה, סיכום שיעור אוטומטי.</div>
+          <span class="step-tag">נתונים בזמן אמת</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEACHER DASHBOARD -->
+<section class="dash-sec">
+  <div class="sec">
+    <div class="sec-tag">ממשק המורה</div>
+    <h2 class="sec-title">מה קורה בכיתה — בזמן אמת</h2>
+    <p class="sec-sub">ציון, התקדמות, מי תקוע, מי זקוק לעזרה — בלי לשאול כל תלמיד בנפרד.</p>
+    <div class="dash-grid">
+      <div class="dash-mock">
+        <div class="dash-hdr">
+          <span class="dash-hdr-title">📊 לוח תלמידים — כיתה י'א</span>
+          <span style="font-size:10px;color:rgba(212,170,58,.6);">עודכן זה עתה</span>
+        </div>
+        <div class="dash-body">
+          <div class="dash-row">
+            <div class="dash-avatar dash-av-g">👧</div>
+            <div class="dash-info"><div class="dash-name">נועה כ'</div><div class="dash-chapter">שמואל א' פרק א' · 8 שאלות</div></div>
+            <div class="dash-right"><div class="dash-pct">65%</div><div class="dash-prog"><div class="dash-prog-in" style="width:65%"></div></div></div>
+          </div>
+          <div class="dash-row">
+            <div class="dash-avatar dash-av-r">👦</div>
+            <div class="dash-info"><div class="dash-name">יוסי מ'</div><div class="dash-chapter">שמואל א' פרק א' · 3 שאלות</div></div>
+            <div class="dash-right"><span class="tag-help">⚠ זקוק לעזרה</span></div>
+          </div>
+          <div class="dash-row">
+            <div class="dash-avatar dash-av-b">👧</div>
+            <div class="dash-info"><div class="dash-name">מיכל ר'</div><div class="dash-chapter">שמואל א' פרק א' · סיים</div></div>
+            <div class="dash-right"><span class="tag-done">🆕 92% ✓</span></div>
+          </div>
+          <div class="dash-row">
+            <div class="dash-avatar dash-av-g">👦</div>
+            <div class="dash-info"><div class="dash-name">דוד ל'</div><div class="dash-chapter">שמואל א' פרק א' · 5 שאלות</div></div>
+            <div class="dash-right"><div class="dash-pct">40%</div><div class="dash-prog"><div class="dash-prog-in" style="width:40%"></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dash-features">
+        <div class="df"><div class="df-icon">📝</div><div><div class="df-title">הערה לתלמיד</div><div class="df-desc">שולח הערה ספציפית על פרק — התלמיד רואה אותה בפעם הבאה שנכנס</div></div></div>
+        <div class="df"><div class="df-icon">📢</div><div><div class="df-title">הודעה לכל הכיתה</div><div class="df-desc">בלחיצה אחת — "זכרו לחזור על פרק א' לפני השיעור"</div></div></div>
+        <div class="df"><div class="df-icon">🤖</div><div><div class="df-title">סיכום שיעור אוטומטי</div><div class="df-desc">AI מסכם מה קרה בכיתה בשעתיים האחרונות</div></div></div>
+        <div class="df"><div class="df-icon">📥</div><div><div class="df-title">ייצוא נתונים</div><div class="df-desc">ייצוא לאקסל בלחיצה — ציונים, זמן עבודה, מי זקוק לעזרה</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section>
+  <div class="sec">
+    <div class="sec-tag">פיצ'רים</div>
+    <h2 class="sec-title">מה מקבלים</h2>
+    <div class="fgrid">
+      <div class="fcard"><div class="fc-icon">✏️</div><div class="fc-t">קסטומיזציה מלאה</div><div class="fc-d">שאלות מנחות, אמצעים ספרותיים, פרשנים, מסר מרכזי — ה-AI ישתמש בכל זה</div></div>
+      <div class="fcard"><div class="fc-icon">👤</div><div class="fc-t">פנייה אישית אמיתית</div><div class="fc-d">ה-AI מכיר כל תלמיד — גיל, תחביבים, רמה — ומתאים את השפה והדוגמאות</div></div>
+      <div class="fcard"><div class="fc-icon">📖</div><div class="fc-t">הסבר מילים קשות</div><div class="fc-d">לחיצה על מילה = הסבר בהקשר הפסוק הספציפי, לא מילון כללי</div></div>
+      <div class="fcard"><div class="fc-icon">🏆</div><div class="fc-t">בוחן מותאם רמה</div><div class="fc-d">5 שאלות שונות לתלמיד בסיסי, ביניים ומתקדם — אותו פרק, שלוש רמות</div></div>
+      <div class="fcard"><div class="fc-icon">📁</div><div class="fc-t">ניהול פרקים</div><div class="fc-d">תיקיות, העתקה בין כיתות, הסתרת פרקים — הכל בממשק ידידותי</div></div>
+      <div class="fcard"><div class="fc-icon">📱</div><div class="fc-t">מחשב ופלאפון</div><div class="fc-d">ממשק מותאם מלא לטלפון — התלמיד לומד מכל מקום, גם לפני הבגרות</div></div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- CTA -->
+<section class="cta" id="cta-section">
+  <h2>מצטרפים לפיילוט?</h2>
+  <p>חינם לחלוטין. בקשה אחת בלבד: משוב אחד אחרי השימוש הראשון.</p>
+  <div class="cta-box">
+    <div class="cta-t">🎓 פיילוט חינמי — תנאים פשוטים</div>
+    <div class="cta-s">כיתה אחת · עד 30 תלמידים · קוד תוך 24 שעות</div>
+    <div class="cta-steps">
+      <div class="cs"><div class="csn">1</div><span>שולח/ת מייל עם שם בית הספר ושם הכיתה</span></div>
+      <div class="cs"><div class="csn">2</div><span>מקבל/ת קוד כיתה תוך 24 שעות</span></div>
+      <div class="cs"><div class="csn">3</div><span>לאחר שיעור ראשון — שולח/ת משוב קצר</span></div>
+    </div>
+    <a href="mailto:racheli94@gmail.com?subject=מעוניין בפיילוט ללמוד.תנ״ך&body=שם: %0Aבית ספר: %0Aכיתות: %0Aמספר תלמידים: "
+       class="btn-gold" style="display:block;text-align:center;">✉️ שלח/י מייל להצטרפות</a>
+  </div>
+</section>
+
+<footer>✦ &nbsp; ללמוד.תנ"ך — פלטפורמת למידה דיגיטלית &nbsp; ✦</footer>
+
+<script>
+// Smooth scroll for all anchor links
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click',function(e){
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if(el){e.preventDefault();el.scrollIntoView({behavior:'smooth',block:'start'});}
+  });
+});
+
+var obs=new IntersectionObserver(function(e){
+  e.forEach(function(x){
+    if(x.isIntersecting){
+      x.target.style.opacity="1";x.target.style.transform="translateY(0)";
+      obs.unobserve(x.target);
+    }
+  });
+},{threshold:.08});
+document.querySelectorAll(".pcard,.fcard,.qcard,.step,.df").forEach(function(el){
+  el.style.opacity="0";el.style.transform="translateY(16px)";
+  el.style.transition="opacity .5s ease,transform .5s ease";
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
